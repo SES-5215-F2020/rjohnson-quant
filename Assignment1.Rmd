@@ -1,0 +1,19 @@
+---
+title: "Assignment 1"
+author: "Ryan Johnson"
+date: "9/3/2020"
+output: html_document
+---
+# Level 1 title 
+
+Copy text!!
+
+## Level 2 title
+
+More copy!
+
+```{r}
+2 + 2
+```
+
+The answer was correct. 
