@@ -1,0 +1,71 @@
+---
+title: "Assignment 1 - Dataset"
+author: "Ryan Johnson"
+date: "9/6/2020"
+output: html_document
+---
+```{r load libraries, include=FALSE}
+library(tidycensus)
+library(tidyverse)
+
+```
+
+### *Description*
+
+
+The dataset I have assembled for this course is comprised of **household-level data** from the 2018 American Community Survey. This dataset includes the following seven variables:
+
+* **Household income (HINCP)** (continuous)
+* **Monthly rent (RNTP)** (continuous)
+* **Monthly mortagage payment (MRGP)** (continuous)
+* **Number of people in household (NP)** (continuous)
+* **Household type (HHT)** (categorical)
+* **Tenure in household (TEN**) (categorical)
+* **Year built (YBL)** (categorical)
+
+This data was filtered to a sample of **49,410 observations** by including only those households with an income above the single-person poverty level, and with *some* monthly rent payment or mortgage payment.
+
+### *R segments used to define this dataset:*
+
+
+First, I pulled household-level ACS 2018 data using the tidycensus package.
+
+```{r}
+hh_vars_2018 <- pums_variables %>%
+  distinct(year, survey, var_code, 
+           var_label, data_type, level) %>%
+  filter(level == "housing", year == 2018, survey == "acs1")
+```
+
+
+Next, I filtered this data to create my desired sample. 
+
+```{r load household-level MA data filtered, message=FALSE, results='hide'}
+household_MA_nonpov_payment_data <- get_pums(variables = c("HINCP", 
+                                      "RNTP", 
+                                      "MRGP", 
+                                      "NP", 
+                                      "HHT",
+                                      "TEN",
+                                      "YBL"),
+                        state = "MA",
+                        year = 2018, 
+                        survey = "acs1",
+                        recode = TRUE) %>%
+  filter(HINCP > 12140, RNTP > 0 | MRGP >0) %>%
+  select(HINCP, RNTP, MRGP, NP, HHT_label, TEN_label, YBL_label)
+```
+
+
+This is the first ten rows of the final sample of data:
+
+```{r}
+household_MA_nonpov_payment_data
+```
+
+```{r writeCSV, eval=FALSE, include=FALSE}
+write_csv(household_MA_nonpov_payment_data, "MA_household_data.csv")
+```
+
+Lastly, I wrote this dataset to a CSV file for future use. 
+
