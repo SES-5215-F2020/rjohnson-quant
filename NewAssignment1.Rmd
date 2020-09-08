@@ -22,12 +22,15 @@ The dataset I have assembled for this course is comprised of **household-level d
 * **Tenure in household (TEN**) (categorical)
 * **Year built (YBL)** (categorical)
 
-This data was filtered to a sample of **49,410 observations** by including only those households with an income above the single-person poverty level, and with *some* monthly rent payment or mortgage payment.
+This data was filtered to a sample of **8,269 observations** by including only those households in Travis County, TX, with an income above the single-person poverty level and with *some* monthly rent or mortgage payment.
+
+I further filtered this data to only include observations taken in Travis County, TX, using a method described below.
 
 ### *R segments used to define this dataset*
 
 
 First, I pulled household-level ACS 2018 data using the tidycensus package.
+
 
 ```{r}
 hh_vars_2018 <- pums_variables %>%
@@ -37,9 +40,14 @@ hh_vars_2018 <- pums_variables %>%
 ```
 
 
-Next, I filtered this data to create my desired sample. 
 
-```{r load household-level MA data filtered, message=FALSE, results='hide'}
+Next, I filtered this data to create my desired sample. To accomplish this, I included the variable "PUMA", which includes a 5-digit Public Use Microdata Area code. These codes are assigned to areas including roughly 100,000 people, and are coded at the county level. I used the Census Bureau website's Geography web map (https://tigerweb.geo.census.gov/tigerweb/) to find all of the codes included within Travis County. 
+
+I limited my "get_pums()" function to include the above-mentioned variables and PUMAs, and then set the parameters to include 2018 data from TX. 
+
+With the "filter()" function, I combined logical expressions to limit my dataset to only those observations taken in Travis County (PUMA codes 05301 through 05309) which met my income and housing cost criteria. 
+
+```{r load household-level MA data filtered, message=FALSE, include=FALSE, results='hide'}
 hh_MA_data <- get_pums(variables = c("HINCP", 
                                       "RNTP", 
                                       "MRGP", 
@@ -54,16 +62,37 @@ hh_MA_data <- get_pums(variables = c("HINCP",
   filter(HINCP > 12140, RNTP > 0 | MRGP >0) %>%
   select(HINCP, RNTP, MRGP, NP, HHT_label, TEN_label, YBL_label)
 ```
+
+```{r load hh Travis Co data, message=FALSE, results='hide'}
+hh_TravisCo_data <- get_pums(variables = c("PUMA", 
+                                   "HINCP", 
+                                      "RNTP", 
+                                      "MRGP", 
+                                      "NP", 
+                                      "HHT",
+                                      "TEN",
+                                      "YBL"),
+                        state = "TX",
+                        year = 2018, 
+                        survey = "acs1",
+                        recode = TRUE) %>%
+     filter(HINCP > 12140, RNTP > 0 | MRGP >0, PUMA=='05301' | PUMA=='05302' | PUMA=='05303' | PUMA=='05304' | PUMA=='05305' | PUMA=='05306' | PUMA=='05307' | PUMA=='05308' | PUMA=='05309') %>%
+     select(HINCP, RNTP, MRGP, NP, HHT_label, TEN_label, YBL_label)
+```
+
+
+
 ### *Final dataset*
 
 This is the first ten rows of the final sample of data:
 
+
 ```{r, echo=FALSE}
-hh_MA_data
+hh_TravisCo_data
 ```
 
 ```{r writeCSV, eval=FALSE, include=FALSE}
-write_csv(hh_MA_data, "hh_MA_data.csv")
+write_csv(hh_TravisCo_data, "hh_TravisCo_data.csv")
 ```
 
 Lastly, I wrote this dataset to a CSV file for future use. 
