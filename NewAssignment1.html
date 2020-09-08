@@ -381,7 +381,8 @@ summary {
 <li><strong>Tenure in household (TEN</strong>) (categorical)</li>
 <li><strong>Year built (YBL)</strong> (categorical)</li>
 </ul>
-<p>This data was filtered to a sample of <strong>49,410 observations</strong> by including only those households with an income above the single-person poverty level, and with <em>some</em> monthly rent payment or mortgage payment.</p>
+<p>This data was filtered to a sample of <strong>8,269 observations</strong> by including only those households in Travis County, TX, with an income above the single-person poverty level and with <em>some</em> monthly rent or mortgage payment.</p>
+<p>I further filtered this data to only include observations taken in Travis County, TX, using a method described below.</p>
 </div>
 <div id="r-segments-used-to-define-this-dataset" class="section level3">
 <h3><em>R segments used to define this dataset</em></h3>
@@ -390,38 +391,41 @@ summary {
   distinct(year, survey, var_code, 
            var_label, data_type, level) %&gt;%
   filter(level == &quot;housing&quot;, year == 2018, survey == &quot;acs1&quot;)</code></pre>
-<p>Next, I filtered this data to create my desired sample.</p>
-<pre class="r"><code>hh_MA_data &lt;- get_pums(variables = c(&quot;HINCP&quot;, 
+<p>Next, I filtered this data to create my desired sample. To accomplish this, I included the variable “PUMA”, which includes a 5-digit Public Use Microdata Area code. These codes area assigned to areas including roughly 100,000 people, and are coded at the county level. I used the Census Bureau website’s Geography web map (<a href="https://tigerweb.geo.census.gov/tigerweb/" class="uri">https://tigerweb.geo.census.gov/tigerweb/</a>) to find all of the codes included within Travis County.</p>
+<p>I limited my “get_pums()” function to include the above-mentioned variables and PUMAs, and then set the parameters to include 2018 data from TX.</p>
+<p>With the “filter()” function, I combined logical expressions to limit my dataset to only those observations taken in Travis County (PUMA codes 05301 through 05309) which met my income and housing cost criteria.</p>
+<pre class="r"><code>hh_TravisCo_data &lt;- get_pums(variables = c(&quot;PUMA&quot;, 
+                                   &quot;HINCP&quot;, 
                                       &quot;RNTP&quot;, 
                                       &quot;MRGP&quot;, 
                                       &quot;NP&quot;, 
                                       &quot;HHT&quot;,
                                       &quot;TEN&quot;,
                                       &quot;YBL&quot;),
-                        state = &quot;MA&quot;,
+                        state = &quot;TX&quot;,
                         year = 2018, 
                         survey = &quot;acs1&quot;,
                         recode = TRUE) %&gt;%
-  filter(HINCP &gt; 12140, RNTP &gt; 0 | MRGP &gt;0) %&gt;%
-  select(HINCP, RNTP, MRGP, NP, HHT_label, TEN_label, YBL_label)</code></pre>
+     filter(HINCP &gt; 12140, RNTP &gt; 0 | MRGP &gt;0, PUMA==&#39;05301&#39; | PUMA==&#39;05302&#39; | PUMA==&#39;05303&#39; | PUMA==&#39;05304&#39; | PUMA==&#39;05305&#39; | PUMA==&#39;05306&#39; | PUMA==&#39;05307&#39; | PUMA==&#39;05308&#39; | PUMA==&#39;05309&#39;) %&gt;%
+     select(HINCP, RNTP, MRGP, NP, HHT_label, TEN_label, YBL_label)</code></pre>
 </div>
 <div id="final-dataset" class="section level3">
 <h3><em>Final dataset</em></h3>
 <p>This is the first ten rows of the final sample of data:</p>
-<pre><code>## # A tibble: 49,410 x 7
+<pre><code>## # A tibble: 8,269 x 7
 ##     HINCP  RNTP  MRGP    NP HHT_label             TEN_label            YBL_label
 ##     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;                 &lt;chr&gt;                &lt;chr&gt;    
-##  1  19000  2300     0     2 Nonfamily household:~ Rented               2015     
-##  2  19000  2300     0     2 Nonfamily household:~ Rented               2015     
-##  3  36500  2100     0     1 Nonfamily household:~ Rented               1990 to ~
-##  4 130000  1700     0     2 Nonfamily household:~ Rented               2012     
-##  5 130000  1700     0     2 Nonfamily household:~ Rented               2012     
-##  6  65000     0  1600     2 Married couple house~ Owned with mortgage~ 1960 to ~
-##  7  65000     0  1600     2 Married couple house~ Owned with mortgage~ 1960 to ~
-##  8 230000     0  1500     3 Married couple house~ Owned with mortgage~ 1950 to ~
-##  9 230000     0  1500     3 Married couple house~ Owned with mortgage~ 1950 to ~
-## 10 230000     0  1500     3 Married couple house~ Owned with mortgage~ 1950 to ~
-## # ... with 49,400 more rows</code></pre>
+##  1 115000  3000     0     3 Other family househo~ Rented               1990 to ~
+##  2 115000  3000     0     3 Other family househo~ Rented               1990 to ~
+##  3 115000  3000     0     3 Other family househo~ Rented               1990 to ~
+##  4  28000     0   800     1 Nonfamily household:~ Owned with mortgage~ 1970 to ~
+##  5  26200  3000     0     3 Nonfamily household:~ Rented               1950 to ~
+##  6  26200  3000     0     3 Nonfamily household:~ Rented               1950 to ~
+##  7  26200  3000     0     3 Nonfamily household:~ Rented               1950 to ~
+##  8  70000     0  1200     3 Other family househo~ Owned with mortgage~ 2000 to ~
+##  9  70000     0  1200     3 Other family househo~ Owned with mortgage~ 2000 to ~
+## 10  70000     0  1200     3 Other family househo~ Owned with mortgage~ 2000 to ~
+## # ... with 8,259 more rows</code></pre>
 <p>Lastly, I wrote this dataset to a CSV file for future use.</p>
 </div>
 
