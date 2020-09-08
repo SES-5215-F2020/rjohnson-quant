@@ -1,0 +1,70 @@
+---
+title: "Data tutorial"
+author: "Ryan Johnson"
+date: "9/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+hh_vars_2018 <- pums_variables %>%
+  distinct(year, survey, var_code, 
+           var_label, data_type, level) %>%
+  filter(level == "housing", year == 2018, survey == "acs1")
+```
+```{r}
+person_vars_2018 <- pums_variables %>%
+  distinct(year, survey, var_code, 
+           var_label, data_type, level) %>%
+  filter(level == "person", year == 2018, survey == "acs1")
+```
+```{r}
+area_vars_2018 <- load_variables(2018, "acs1")
+
+```
+```{r}
+area_vars_2010 <- load_variables(2010, "sf1")
+
+```
+
+```{r load person-level data, results = 'hide'}
+person_data <- get_pums(variables = c("TEN", 
+                                      "SEX", 
+                                      "PINCP", 
+                                      "WKHP", 
+                                      "JWMNP"),
+                        state = "TX", 
+                        year = 2018, 
+                        survey = "acs1",
+                        recode = TRUE) %>%
+  filter(JWMNP > 0) %>%
+  select(TEN_label, SEX_label, PINCP, WKHP, JWMNP)
+```
+
+```{r}
+person_data
+
+```
+
