@@ -41,7 +41,7 @@ hh_vars_2018 <- pums_variables %>%
 
 
 
-Next, I filtered this data to create my desired sample. To accomplish this, I included the variable "PUMA", which includes a 5-digit Public Use Microdata Area code. These codes area assigned to areas including roughly 100,000 people, and are coded at the county level. I used the Census Bureau website's Geography web map (https://tigerweb.geo.census.gov/tigerweb/) to find all of the codes included within Travis County. 
+Next, I filtered this data to create my desired sample. To accomplish this, I included the variable "PUMA", which includes a 5-digit Public Use Microdata Area code. These codes are assigned to areas including roughly 100,000 people, and are coded at the county level. I used the Census Bureau website's Geography web map (https://tigerweb.geo.census.gov/tigerweb/) to find all of the codes included within Travis County. 
 
 I limited my "get_pums()" function to include the above-mentioned variables and PUMAs, and then set the parameters to include 2018 data from TX. 
 
