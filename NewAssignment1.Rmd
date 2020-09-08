@@ -76,7 +76,8 @@ hh_TravisCo_data <- get_pums(variables = c("PUMA",
                         year = 2018, 
                         survey = "acs1",
                         recode = TRUE) %>%
-     filter(HINCP > 12140, RNTP > 0 | MRGP >0, PUMA=='05301' | PUMA=='05302' | PUMA=='05303' | PUMA=='05304' | PUMA=='05305' | PUMA=='05306' | PUMA=='05307' | PUMA=='05308' | PUMA=='05309') %>%
+     mutate(PUMA = as.numeric(PUMA)) %>%
+     filter(HINCP > 12140, RNTP > 0 | MRGP >0, PUMA > 05300 & PUMA < 05310) %>%
      select(HINCP, RNTP, MRGP, NP, HHT_label, TEN_label, YBL_label)
 ```
 

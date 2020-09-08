@@ -406,7 +406,8 @@ summary {
                         year = 2018, 
                         survey = &quot;acs1&quot;,
                         recode = TRUE) %&gt;%
-     filter(HINCP &gt; 12140, RNTP &gt; 0 | MRGP &gt;0, PUMA==&#39;05301&#39; | PUMA==&#39;05302&#39; | PUMA==&#39;05303&#39; | PUMA==&#39;05304&#39; | PUMA==&#39;05305&#39; | PUMA==&#39;05306&#39; | PUMA==&#39;05307&#39; | PUMA==&#39;05308&#39; | PUMA==&#39;05309&#39;) %&gt;%
+     mutate(PUMA = as.numeric(PUMA)) %&gt;%
+     filter(HINCP &gt; 12140, RNTP &gt; 0 | MRGP &gt;0, PUMA &gt; 05300 &amp; PUMA &lt; 05310) %&gt;%
      select(HINCP, RNTP, MRGP, NP, HHT_label, TEN_label, YBL_label)</code></pre>
 </div>
 <div id="final-dataset" class="section level3">
