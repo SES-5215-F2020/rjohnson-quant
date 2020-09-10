@@ -364,14 +364,14 @@ summary {
 
 <h1 class="title toc-ignore">Assignment 1 Submission</h1>
 <h4 class="author">Ryan Johnson</h4>
-<h4 class="date">9/7/2020</h4>
+<h4 class="date">9/9/2020</h4>
 
 </div>
 
 
 <div id="description" class="section level3">
 <h3><em>Description</em></h3>
-<p>The dataset I have assembled for this course is comprised of <strong>household-level data</strong> from the 2018 American Community Survey. This dataset includes the following seven variables:</p>
+<p>The dataset I have assembled for this course is comprised of <strong>household-level data</strong> from the one-year 2018 American Community Survey (ACS). This dataset includes the following seven variables:</p>
 <ul>
 <li><strong>Household income (HINCP)</strong> (continuous)</li>
 <li><strong>Monthly rent (RNTP)</strong> (continuous)</li>
@@ -391,7 +391,7 @@ summary {
   distinct(year, survey, var_code, 
            var_label, data_type, level) %&gt;%
   filter(level == &quot;housing&quot;, year == 2018, survey == &quot;acs1&quot;)</code></pre>
-<p>Next, I filtered this data to create my desired sample. To accomplish this, I included the variable “PUMA”, which includes a 5-digit Public Use Microdata Area code. These codes are assigned to areas including roughly 100,000 people, and are coded at the county level. I used the Census Bureau website’s Geography web map (<a href="https://tigerweb.geo.census.gov/tigerweb/" class="uri">https://tigerweb.geo.census.gov/tigerweb/</a>) to find all of the codes included within Travis County.</p>
+<p>Next, I filtered this data to create my desired sample. To accomplish this, I included the variable “PUMA”, which lists the 5-digit Public Use Microdata Area codes, which are unique descriptors assigned to areas including roughly 100,000 people. These areas are the smallest unit of analysis Public Use Microdata from the Census Bureau. I used the Bureau’s geography web map (<a href="https://tigerweb.geo.census.gov/tigerweb/" class="uri">https://tigerweb.geo.census.gov/tigerweb/</a>) to find all of the codes included within Travis County.</p>
 <p>I limited my “get_pums()” function to include the above-mentioned variables and PUMAs, and then set the parameters to include 2018 data from TX.</p>
 <p>With the “filter()” function, I combined logical expressions to limit my dataset to only those observations taken in Travis County (PUMA codes 05301 through 05309) which met my income and housing cost criteria.</p>
 <pre class="r"><code>hh_TravisCo_data &lt;- get_pums(variables = c(&quot;PUMA&quot;, 
@@ -413,6 +413,7 @@ summary {
 <div id="final-dataset" class="section level3">
 <h3><em>Final dataset</em></h3>
 <p>This is the first ten rows of the final sample of data:</p>
+<pre class="r"><code>hh_TravisCo_data</code></pre>
 <pre><code>## # A tibble: 8,269 x 7
 ##     HINCP  RNTP  MRGP    NP HHT_label             TEN_label            YBL_label
 ##     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;                 &lt;chr&gt;                &lt;chr&gt;    

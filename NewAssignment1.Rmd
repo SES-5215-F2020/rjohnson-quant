@@ -1,7 +1,7 @@
 ---
 title: "Assignment 1 Submission"
 author: "Ryan Johnson"
-date: "9/7/2020"
+date: "9/9/2020"
 output: html_document
 ---
 ```{r load libraries, include=FALSE}
@@ -11,8 +11,7 @@ library(tidyverse)
 
 ### *Description*
 
-
-The dataset I have assembled for this course is comprised of **household-level data** from the 2018 American Community Survey. This dataset includes the following seven variables:
+The dataset I have assembled for this course is comprised of **household-level data** from the one-year 2018 American Community Survey (ACS). This dataset includes the following seven variables:
 
 * **Household income (HINCP)** (continuous)
 * **Monthly rent (RNTP)** (continuous)
@@ -41,27 +40,12 @@ hh_vars_2018 <- pums_variables %>%
 
 
 
-Next, I filtered this data to create my desired sample. To accomplish this, I included the variable "PUMA", which includes a 5-digit Public Use Microdata Area code. These codes are assigned to areas including roughly 100,000 people, and are coded at the county level. I used the Census Bureau website's Geography web map (https://tigerweb.geo.census.gov/tigerweb/) to find all of the codes included within Travis County. 
+Next, I filtered this data to create my desired sample. To accomplish this, I included the variable "PUMA", which lists the 5-digit Public Use Microdata Area codes, which are unique descriptors assigned to areas including roughly 100,000 people. These areas are the smallest unit of analysis Public Use Microdata from the Census Bureau. I used the Bureau's geography web map (https://tigerweb.geo.census.gov/tigerweb/) to find all of the codes included within Travis County. 
 
 I limited my "get_pums()" function to include the above-mentioned variables and PUMAs, and then set the parameters to include 2018 data from TX. 
 
 With the "filter()" function, I combined logical expressions to limit my dataset to only those observations taken in Travis County (PUMA codes 05301 through 05309) which met my income and housing cost criteria. 
 
-```{r load household-level MA data filtered, message=FALSE, include=FALSE, results='hide'}
-hh_MA_data <- get_pums(variables = c("HINCP", 
-                                      "RNTP", 
-                                      "MRGP", 
-                                      "NP", 
-                                      "HHT",
-                                      "TEN",
-                                      "YBL"),
-                        state = "MA",
-                        year = 2018, 
-                        survey = "acs1",
-                        recode = TRUE) %>%
-  filter(HINCP > 12140, RNTP > 0 | MRGP >0) %>%
-  select(HINCP, RNTP, MRGP, NP, HHT_label, TEN_label, YBL_label)
-```
 
 ```{r load hh Travis Co data, message=FALSE, results='hide'}
 hh_TravisCo_data <- get_pums(variables = c("PUMA", 
@@ -88,7 +72,7 @@ hh_TravisCo_data <- get_pums(variables = c("PUMA",
 This is the first ten rows of the final sample of data:
 
 
-```{r, echo=FALSE}
+```{r, message=FALSE}
 hh_TravisCo_data
 ```
 
