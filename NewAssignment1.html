@@ -377,9 +377,9 @@ summary {
 <li><strong>Monthly rent (RNTP)</strong> (continuous)</li>
 <li><strong>Monthly mortagage payment (MRGP)</strong> (continuous)</li>
 <li><strong>Number of people in household (NP)</strong> (continuous)</li>
+<li><strong>Building age <em>in decades</em> (BLDG_AGE_dec)</strong> (continuous)</li>
 <li><strong>Household type (HHT)</strong> (categorical)</li>
 <li><strong>Tenure in household (TEN</strong>) (categorical)</li>
-<li><strong>Year built (YBL)</strong> (categorical)</li>
 </ul>
 <p>This data was filtered to a sample of <strong>8,269 observations</strong> by including only those households in Travis County, TX, with an income above the single-person poverty level and with <em>some</em> monthly rent or mortgage payment.</p>
 <p>I further filtered this data to only include observations taken in Travis County, TX, using a method described below.</p>
@@ -393,9 +393,11 @@ summary {
   filter(level == &quot;housing&quot;, year == 2018, survey == &quot;acs1&quot;)</code></pre>
 <p>Next, I filtered this data to create my desired sample. To accomplish this, I included the variable “PUMA”, which lists the 5-digit Public Use Microdata Area codes, which are unique descriptors assigned to areas including roughly 100,000 people. These areas are the smallest unit of analysis Public Use Microdata from the Census Bureau. I used the Bureau’s geography web map (<a href="https://tigerweb.geo.census.gov/tigerweb/" class="uri">https://tigerweb.geo.census.gov/tigerweb/</a>) to find all of the codes included within Travis County.</p>
 <p>I limited my “get_pums()” function to include the above-mentioned variables and PUMAs, and then set the parameters to include 2018 data from TX.</p>
+<p>Using the “mutate()” function, I converted the “YBL” categorical variable describing the year a building was built into the continuous “BLDG_AGE_dec” variable, showing the age of a building in decades (from 0 to 8 or more).</p>
 <p>With the “filter()” function, I combined logical expressions to limit my dataset to only those observations taken in Travis County (PUMA codes 05301 through 05309) which met my income and housing cost criteria.</p>
-<pre class="r"><code>hh_TravisCo_data &lt;- get_pums(variables = c(&quot;PUMA&quot;, 
-                                   &quot;HINCP&quot;, 
+<pre class="r"><code>hh_TravisCo_data &lt;- get_pums(variables = c(
+                                      &quot;PUMA&quot;, 
+                                      &quot;HINCP&quot;, 
                                       &quot;RNTP&quot;, 
                                       &quot;MRGP&quot;, 
                                       &quot;NP&quot;, 
@@ -407,26 +409,49 @@ summary {
                         survey = &quot;acs1&quot;,
                         recode = TRUE) %&gt;%
      mutate(PUMA = as.numeric(PUMA)) %&gt;%
+     mutate(BLDG_AGE_dec = case_when(
+      YBL_label == &quot;1939 or earlier&quot; ~ 8,
+      YBL_label == &quot;1940 to 1949&quot; ~ 7,
+      YBL_label == &quot;1950 to 1959&quot; ~ 6,
+      YBL_label == &quot;1960 to 1969&quot; ~ 5,
+      YBL_label == &quot;1970 to 1979&quot; ~ 4,
+      YBL_label == &quot;1980 to 1989&quot; ~ 3,
+      YBL_label == &quot;1990 to 1999&quot; ~ 2,
+      YBL_label == &quot;2000 to 2004&quot; ~ 1,
+      YBL_label == &quot;2005&quot; ~ 1,
+      YBL_label == &quot;2006&quot; ~ 1,
+      YBL_label == &quot;2007&quot; ~ 1,
+      YBL_label == &quot;2008&quot; ~ 1,
+      YBL_label == &quot;2009&quot; ~ 1,
+      YBL_label == &quot;2010&quot; ~ 0,
+      YBL_label == &quot;2011&quot; ~ 0,
+      YBL_label == &quot;2012&quot; ~ 0,
+      YBL_label == &quot;2013&quot; ~ 0,
+      YBL_label == &quot;2014&quot; ~ 0,
+      YBL_label == &quot;2015&quot; ~ 0,
+      YBL_label == &quot;2016&quot; ~ 0,
+      YBL_label == &quot;2017&quot; ~ 0,
+      YBL_label == &quot;2018&quot; ~ 0,)) %&gt;% 
      filter(HINCP &gt; 12140, RNTP &gt; 0 | MRGP &gt;0, PUMA &gt; 05300 &amp; PUMA &lt; 05310) %&gt;%
-     select(HINCP, RNTP, MRGP, NP, HHT_label, TEN_label, YBL_label)</code></pre>
+     select(HINCP, RNTP, MRGP, NP, HHT_label, TEN_label, BLDG_AGE_dec)</code></pre>
 </div>
 <div id="final-dataset" class="section level3">
 <h3><em>Final dataset</em></h3>
 <p>This is the first ten rows of the final sample of data:</p>
 <pre class="r"><code>hh_TravisCo_data</code></pre>
 <pre><code>## # A tibble: 8,269 x 7
-##     HINCP  RNTP  MRGP    NP HHT_label             TEN_label            YBL_label
-##     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;                 &lt;chr&gt;                &lt;chr&gt;    
-##  1 115000  3000     0     3 Other family househo~ Rented               1990 to ~
-##  2 115000  3000     0     3 Other family househo~ Rented               1990 to ~
-##  3 115000  3000     0     3 Other family househo~ Rented               1990 to ~
-##  4  28000     0   800     1 Nonfamily household:~ Owned with mortgage~ 1970 to ~
-##  5  26200  3000     0     3 Nonfamily household:~ Rented               1950 to ~
-##  6  26200  3000     0     3 Nonfamily household:~ Rented               1950 to ~
-##  7  26200  3000     0     3 Nonfamily household:~ Rented               1950 to ~
-##  8  70000     0  1200     3 Other family househo~ Owned with mortgage~ 2000 to ~
-##  9  70000     0  1200     3 Other family househo~ Owned with mortgage~ 2000 to ~
-## 10  70000     0  1200     3 Other family househo~ Owned with mortgage~ 2000 to ~
+##     HINCP  RNTP  MRGP    NP HHT_label            TEN_label          BLDG_AGE_dec
+##     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;                &lt;chr&gt;                     &lt;dbl&gt;
+##  1 115000  3000     0     3 Other family househ~ Rented                        2
+##  2 115000  3000     0     3 Other family househ~ Rented                        2
+##  3 115000  3000     0     3 Other family househ~ Rented                        2
+##  4  28000     0   800     1 Nonfamily household~ Owned with mortga~            4
+##  5  26200  3000     0     3 Nonfamily household~ Rented                        6
+##  6  26200  3000     0     3 Nonfamily household~ Rented                        6
+##  7  26200  3000     0     3 Nonfamily household~ Rented                        6
+##  8  70000     0  1200     3 Other family househ~ Owned with mortga~            1
+##  9  70000     0  1200     3 Other family househ~ Owned with mortga~            1
+## 10  70000     0  1200     3 Other family househ~ Owned with mortga~            1
 ## # ... with 8,259 more rows</code></pre>
 <p>Lastly, I wrote this dataset to a CSV file for future use.</p>
 </div>

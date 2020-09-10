@@ -17,9 +17,9 @@ The dataset I have assembled for this course is comprised of **household-level d
 * **Monthly rent (RNTP)** (continuous)
 * **Monthly mortagage payment (MRGP)** (continuous)
 * **Number of people in household (NP)** (continuous)
+* **Building age _in decades_ (BLDG_AGE_dec)** (continuous)
 * **Household type (HHT)** (categorical)
 * **Tenure in household (TEN**) (categorical)
-* **Year built (YBL)** (categorical)
 
 This data was filtered to a sample of **8,269 observations** by including only those households in Travis County, TX, with an income above the single-person poverty level and with *some* monthly rent or mortgage payment.
 
@@ -44,12 +44,15 @@ Next, I filtered this data to create my desired sample. To accomplish this, I in
 
 I limited my "get_pums()" function to include the above-mentioned variables and PUMAs, and then set the parameters to include 2018 data from TX. 
 
+Using the "mutate()" function, I converted the "YBL" categorical variable describing the year a building was built into the continuous "BLDG_AGE_dec" variable, showing the age of a building in decades (from 0 to 8 or more).
+
 With the "filter()" function, I combined logical expressions to limit my dataset to only those observations taken in Travis County (PUMA codes 05301 through 05309) which met my income and housing cost criteria. 
 
 
 ```{r load hh Travis Co data, message=FALSE, results='hide'}
-hh_TravisCo_data <- get_pums(variables = c("PUMA", 
-                                   "HINCP", 
+hh_TravisCo_data <- get_pums(variables = c(
+                                      "PUMA", 
+                                      "HINCP", 
                                       "RNTP", 
                                       "MRGP", 
                                       "NP", 
@@ -61,10 +64,33 @@ hh_TravisCo_data <- get_pums(variables = c("PUMA",
                         survey = "acs1",
                         recode = TRUE) %>%
      mutate(PUMA = as.numeric(PUMA)) %>%
+     mutate(BLDG_AGE_dec = case_when(
+      YBL_label == "1939 or earlier" ~ 8,
+      YBL_label == "1940 to 1949" ~ 7,
+      YBL_label == "1950 to 1959" ~ 6,
+      YBL_label == "1960 to 1969" ~ 5,
+      YBL_label == "1970 to 1979" ~ 4,
+      YBL_label == "1980 to 1989" ~ 3,
+      YBL_label == "1990 to 1999" ~ 2,
+      YBL_label == "2000 to 2004" ~ 1,
+      YBL_label == "2005" ~ 1,
+      YBL_label == "2006" ~ 1,
+      YBL_label == "2007" ~ 1,
+      YBL_label == "2008" ~ 1,
+      YBL_label == "2009" ~ 1,
+      YBL_label == "2010" ~ 0,
+      YBL_label == "2011" ~ 0,
+      YBL_label == "2012" ~ 0,
+      YBL_label == "2013" ~ 0,
+      YBL_label == "2014" ~ 0,
+      YBL_label == "2015" ~ 0,
+      YBL_label == "2016" ~ 0,
+      YBL_label == "2017" ~ 0,
+      YBL_label == "2018" ~ 0,)) %>% 
      filter(HINCP > 12140, RNTP > 0 | MRGP >0, PUMA > 05300 & PUMA < 05310) %>%
-     select(HINCP, RNTP, MRGP, NP, HHT_label, TEN_label, YBL_label)
-```
+     select(HINCP, RNTP, MRGP, NP, HHT_label, TEN_label, BLDG_AGE_dec)
 
+```
 
 
 ### *Final dataset*
