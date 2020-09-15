@@ -8,6 +8,8 @@ output: html_document
 library(tidycensus)
 library(tidyverse)
 library(ggplot2)
+library(viridis)
+library(wesanderson)
 ```
 
 ###NOTE TO SELF DELETE ME
@@ -20,12 +22,14 @@ proportion of the population in each category.
 As you work on this assignment, you may find that you’ve changed your mind about which variables you
 want to include in your dataset or how you want to define them. That’s not a problem; you can change
 your dataset at any time. Clearly indicate how you’ve decided to change it and why.
+
 ===================================================================
 
 
 
-```{r load dataset from csv, message=FALSE, results='hide'}
+```{r load dataset from csv, message=FALSE, warning=FALSE, results='hide'}
 hh_data <- read_csv("travisrentalhh.csv")
+attach(hh_data)
 ```
 
 * The dataset loaded above includes four continuous variables - household income (HINCP), monthly rent (RNTP), number of people per household (NP), and number of bedrooms per household (BDSP) - and two categorical variables - household type (HHT_label), and building age in decades (BLDG_AGE_dec).
@@ -33,105 +37,115 @@ hh_data <- read_csv("travisrentalhh.csv")
 * This data was modified from my original data set, as I found that including households with either rental or mortgage payments cause too many entries with zero values in each of those variables. I added the bedrooms-per-household variable to better investigate relationships between household size and type, and rental costs. This change was accomplished by removing the mortage payment variable, adding the bedrooms variable, and adjusting my filter function accordingly. 
 
 
+
 ### Household income (dollars) - continuous
 
-```{r summary, message=FALSE}
-HINCP_summary <- summary(hh_data$HINCP)
-
-HINCP_summary
+```{r summary, include=FALSE}
+pop_mean <- t.test(HINCP)
+pop_mean
 ```
 
+* Sample characteristics:
 
-* Sample mean household income:
+```{r pretty summary hincp, message=FALSE}
+paste("The sample mean household income is",
+      prettyNum(mean(HINCP), digits = 5), "dollars.")
+paste("The sample median household income is",
+      prettyNum(median(HINCP), digits = 5), "dollars.")
+paste("The sample standard deviation for household income is",
+      prettyNum(sd(HINCP), digits = 5), "dollars.")
+paste("The sample interquartile range for household income is",
+      quantile(HINCP)["25%"], "to", quantile(HINCP)["75%"], "dollars.")
+paste("The 95-percent confidence interval for the population mean is",
+      prettyNum(pop_mean$conf.int[1], digits = 5), "to",
+      prettyNum(pop_mean$conf.int[2], digits = 5), "dollars.")
 
-```{r SAMPLE MEAN, message=FALSE}
-mean(hh_data$HINCP)
 ```
 
+* Histogram of distribution of sample household income:
 
-
-* Sample standard deviation:
-
-```{r SAMPLE DEVIATION, message=FALSE}
-sd(hh_data$HINCP)
-```
-
-
-
-* 95-percent confidence interval population mean:
-
-```{r CONF INTERVAL, message=FALSE}
-conf_HINCP <- t.test(hh_data$HINCP)
-
-conf_HINCP
-```
-
-
-
-* Interquartile range (from summary statistics, above):
-
-69,260, between 31,800 (Q1) to 101,060 (Q3).
-
-
-
-* Overall distribution of household income in this sample:
-
-```{r HINCP hist, message=FALSE}
-ggplot(hh_data, aes(x = HINCP)) +
+```{r HINCP hist, message=FALSE, results='hide'}
+HINCP_hist <- ggplot(hh_data, aes(x = HINCP)) +
   geom_histogram()
+
+HINCP_hist +
+  theme_minimal() +
+  scale_x_continuous(name = "Househould annual income ($)") +
+  scale_y_continuous(name = "Number of households in sample") +
+  annotate("text", x = 250000, y = 1125, size = 3.25,
+           label = paste("Population mean (95% confidence):",
+                         prettyNum(pop_mean$conf.int[1], digits = 5), "to",
+                         prettyNum(pop_mean$conf.int[2], digits = 5), "dollars",
+                         "\nSample mean:",
+                         prettyNum(mean(HINCP), digits = 5), "dollars",
+                         "\nSample median:",
+                         prettyNum(median(HINCP), digits = 5), "dollars",
+                         "\nSample standard deviation:",
+                         prettyNum(sd(HINCP), digits = 5), "dollars", 
+                         "\nSample interquartile range:",
+                         prettyNum(quantile(HINCP)["25%"], digits = 5),
+                         "to",
+                         prettyNum(quantile(HINCP)["75%"], digits = 5),
+                         "dollars"),
+           hjust = 0, vjust = 1)
+                         
 
 ```
 
 * As clearly seen in the histogram above, household income in this sample population is not distributed normally, but instead has a right skew, more like a negative binomial distribution. A few extreme outliers can be seen in the $1,000,000 range, which makes sense given this sample's location in Austin, a booming tech hub. The impact of these outliers is clear in that the median value is significantly lower than the mean.
 
 
+
 ### Monthly rent payment (dollars) - continuous
+```{r rent popmean, include=FALSE}
+rntp_mean <- t.test(RNTP)
 
-```{r RNTP summary, message=FALSE}
-RNTP_summary <- summary(hh_data$RNTP)
-
-RNTP_summary
 ```
+* Sample characteristics:
 
+```{r pretty summary rntp, message=FALSE}
+paste("The sample mean monthly rent is",
+      prettyNum(mean(RNTP), digits = 4), "dollars.")
+paste("The sample median monthly rent is",
+      prettyNum(median(RNTP), digits = 4), "dollars.")
+paste("The sample standard deviation for monthly rent is",
+      prettyNum(sd(RNTP), digits = 3), "dollars.")
+paste("The sample interquartile range for monthly rent is",
+      quantile(RNTP)["25%"], "to", quantile(RNTP)["75%"], "dollars.")
+paste("The 95-percent confidence interval for the population mean is",
+      prettyNum(rntp_mean$conf.int[1], digits = 4), "to",
+      prettyNum(rntp_mean$conf.int[2], digits = 4), "dollars.")
 
-* Sample mean monthly rent:
-
-```{r RNTP MEAN, message=FALSE}
-mean(hh_data$RNTP)
 ```
-
-
-
-* Sample standard deviation:
-
-```{r RNTP DEVIATION, message=FALSE}
-sd(hh_data$RNTP)
-```
-
-
-
-* 95-percent confidence interval population mean:
-
-```{r CONF RNTP, message=FALSE}
-conf_RNTP <- t.test(hh_data$RNTP)
-
-conf_RNTP
-```
-
-
-
-* Interquartile range (from summary statistics, above):
-
-660, between 940 (Q1) to 1600 (Q3).
 
 
 
 * Overall distribution of rents in this sample:
 
-```{r RNTP hist, message=FALSE}
-ggplot(hh_data, aes(x = RNTP)) +
+```{r RNTP hist, message=FALSE, results='hide'}
+RNTP_hist <- ggplot(hh_data, aes(x = RNTP)) +
   geom_histogram()
 
+RNTP_hist +
+  theme_minimal() +
+  scale_x_continuous(name = "Monthly rent ($)") +
+  scale_y_continuous(name = "Number of households in sample") +
+  annotate("text", x = 1750, y = 450, size = 3.25,
+           label = paste("Population mean (95% confidence):",
+                         prettyNum(rntp_mean$conf.int[1], digits = 4), "to",
+                         prettyNum(rntp_mean$conf.int[2], digits = 4), "\n dollars",
+                         "\nSample mean:",
+                         prettyNum(mean(RNTP), digits = 4), "dollars",
+                         "\nSample median:",
+                         prettyNum(median(RNTP), digits = 4), "dollars",
+                         "\nSample standard deviation:",
+                         prettyNum(sd(RNTP), digits = 3), "dollars", 
+                         "\nSample interquartile range:",
+                         prettyNum(quantile(RNTP)["25%"], digits = 4),
+                         "to",
+                         prettyNum(quantile(RNTP)["75%"], digits = 4),
+                         "dollars"),
+           hjust = 0, vjust = 1)
 ```
 
 * The distribution of monthly rents in this sample is closer to normal, albeit with a significant number of outliers at $3,000/month. This represents one potential limitation of the data, as it is unclear whether this was the actual maximum value recorded, or simply the upper limit of potential values. There are also discernible peaks at approximately 900 and 1600, lined up with the 1st and 3rd quartiles. 
@@ -257,6 +271,11 @@ HHT_proportions <- table(hh_data$HHT_label) / sum(table(hh_data$HHT_label))
 HHT_proportions
 
 ```
+
+```{r HHT proportion mean calc, message=FALSE, results='hide'}
+mean(hh_data$HHT_label == "Married couple household")
+```
+
 
 ```{r conf HHT, message=FALSE, results='hide'}
 t.test(hh_data$HHT_label == "Married couple household")
