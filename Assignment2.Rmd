@@ -243,3 +243,22 @@ ggplot(hh_data, aes(x = BDSP)) +
 
 ### Household type - categorical 
 
+```{r HHT all values, message=FALSE, results='hide'}
+unique(hh_data$HHT_label)
+```
+
+```{r HHT table, message=FALSE, results='hide'}
+table(hh_data$HHT_label)
+```
+
+```{r HHT table proportions, message=FALSE, results='hide'}
+HHT_proportions <- table(hh_data$HHT_label) / sum(table(hh_data$HHT_label))
+
+HHT_proportions
+
+```
+
+```{r conf HHT, message=FALSE, results='hide'}
+t.test(hh_data$HHT_label == "Married couple household")
+```
+

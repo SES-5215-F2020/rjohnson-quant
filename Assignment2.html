@@ -571,6 +571,12 @@ conf_BDSP</code></pre>
 </div>
 <div id="household-type---categorical" class="section level3">
 <h3>Household type - categorical</h3>
+<pre class="r"><code>unique(hh_data$HHT_label)</code></pre>
+<pre class="r"><code>table(hh_data$HHT_label)</code></pre>
+<pre class="r"><code>HHT_proportions &lt;- table(hh_data$HHT_label) / sum(table(hh_data$HHT_label))
+
+HHT_proportions</code></pre>
+<pre class="r"><code>t.test(hh_data$HHT_label == &quot;Married couple household&quot;)</code></pre>
 </div>
 
 
