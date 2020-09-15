@@ -1,0 +1,76 @@
+---
+title: "Assignment 2 Quant"
+author: "Ryan Johnson"
+date: "9/15/2020"
+output: html_document
+---
+```{r load libraries, include=FALSE}
+library(tidycensus)
+library(tidyverse)
+library(ggplot2)
+```
+
+###NOTE TO SELF DELETE ME
+
+For each continuous variable in your dataset, calculate the sample mean, the sample standard deviation,
+the 95-percent confidence interval for the population mean, and the interquartile range. Create a
+histogram to illustrate the distribution of each variable and describe the distribution in a sentence or two.
+For each categorical variable in your dataset, calculate the 95-percent confidence interval for the
+proportion of the population in each category.
+As you work on this assignment, you may find that you’ve changed your mind about which variables you
+want to include in your dataset or how you want to define them. That’s not a problem; you can change
+your dataset at any time. Clearly indicate how you’ve decided to change it and why.
+===================================================================
+
+
+
+```{r load dataset from csv, message=FALSE, results='hide'}
+hh_data <- read_csv("travisrentalhh.csv")
+```
+
+* The dataset loaded above includes four continuous variables - household income (HINCP), monthly rent (RNTP), number of people per household (NP), and number of bedrooms per household (BDSP) - and two categorical variables - household type (HHT_label), and building age in decades (BLDG_AGE_dec).
+
+* This data was modified from my original data set, as I found that including households with either rental or mortgage payments cause too many entries with zero values in each of those variables. I added the bedrooms-per-household variable to better investigate relationships between household size and type, and rental costs. This change was accomplished by removing the mortage payment variable, adding the bedrooms variable, and adjusting my filter function accordingly. 
+
+
+###Household income (dollars) - continuous
+
+```{r summary, message=FALSE}
+HINCP_summary <- summary(hh_data$HINCP)
+
+HINCP_summary
+```
+* Sample mean household income:
+
+```{r SAMPLE MEAN, message=FALSE}
+mean(hh_data$HINCP)
+```
+
+* Sample standard deviation:
+
+```{r SAMPLE DEVIATION, message=FALSE}
+sd(hh_data$HINCP)
+```
+
+
+* 95-percent confidence interval population mean:
+
+```{r CONF INTERVAL, message=FALSE}
+conf_HINCP <- t.test(hh_data$HINCP)
+
+conf_HINCP
+```
+* Interquartile range (from summary statistics, above):
+
+69,260, between 31,800 (Q1) to 101,060 (Q3).
+
+
+* Overall distribution of household income in this sample. 
+
+```{r HINCP hist, message=FALSE}
+ggplot(hh_data, aes(x = HINCP)) +
+  geom_histogram()
+
+```
+
+* As clearly seen in the histogram above, household income in this sample population is not distributed normally, but instead has a right skew, more like a negative binomial distribution. A few extreme outliers can be seen in the $1,000,000 range, which makes sense given this sample's location in Austin, a booming tech hub.
