@@ -17,25 +17,11 @@ library(viridis)
 library(wesanderson)
 ```
 
-###NOTE TO SELF DELETE ME
-
-For each continuous variable in your dataset, calculate the sample mean, the sample standard deviation,
-the 95-percent confidence interval for the population mean, and the interquartile range. Create a
-histogram to illustrate the distribution of each variable and describe the distribution in a sentence or two.
-
-For each categorical variable in your dataset, calculate the 95-percent confidence interval for the
-proportion of the population in each category.
-
-As you work on this assignment, you may find that you’ve changed your mind about which variables you
-want to include in your dataset or how you want to define them. That’s not a problem; you can change
-your dataset at any time. Clearly indicate how you’ve decided to change it and why.
-
-===================================================================
-
+### Description
 
 
 ```{r load dataset from csv, message=FALSE, warning=FALSE, results='hide'}
-hh_data <- read_csv("travisrentalhh.csv")
+hh_data <- read_csv("travisHH.csv")
 attach(hh_data)
 ```
 
@@ -325,27 +311,23 @@ knitr::kable(shares, caption = "Table 1. Proportions and 95-percent confidence i
 ```
 * Figure 5. Percent share of sample by household types
 
-### DELETE ME - the x-axis labels don't align with the proper values! Fix it!
 
 ```{r HHT conf plot, message=FALSE, results='hide'}
 ggplot(shares, aes(x = Type, y = Share, ymin = Low, ymax = High)) +
   geom_bar(stat = "identity") +
-  geom_errorbar(width = 0.5) +
+  geom_errorbar(width = .5) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90)) +
-  scale_x_discrete(labels = c("Single parent \nhousehold - female", 
-                            "Non-family \nhousehold - male", 
-                            "Single female \nhousehold",
-                            "Married couple \nhousehold",
-                            "Single male \nhousehold",
-                            "Single parent \nhousehold - male",
-                            "Non-family \nhousehold - female")) +
   scale_y_continuous(name = "Share of population (error bars represent \n95-percent confidence interval)",
                      breaks = seq(0, 0.5, by = .1),
                      labels = c("0", "10%", "20%", "30%", "40%", "50%"))
 ```
 
-### Building age in decades - categorical
+* The largest category of households in this sample is, by far, married couple-headed households. The second-largest category is single-parent families headed by a female householder, which represents twice as great a share compared to male-headed single-parent households. 
+
+
+
+### Decade of construction - categorical
 
 ```{r BLD all values, message=FALSE, results='hide'}
 ages <- unique(hh_data$BLDG_AGE_dec)
@@ -353,61 +335,65 @@ ages
 ```
 
 
-```{r HHTdataframe, eval=FALSE, message=FALSE, include=FALSE, results='hide'}
-fam_single_female <- t.test(HHT_label == types[1])
-multi_male <- t.test(HHT_label == types[2])
-single_female <- t.test(HHT_label == types[3])
-married <- t.test(HHT_label == types[4])
-single_male <- t.test(HHT_label == types[5])
-fam_single_male <- t.test(HHT_label == types[6])
-multi_female <- t.test(HHT_label == types[7])
+```{r BLDGdataframe, message=FALSE, results='hide'}
+twotens <- t.test(BLDG_AGE_dec == "2010s")
+twos <- t.test(BLDG_AGE_dec == "2000s")
+nines <- t.test(BLDG_AGE_dec == "1990s")
+eights <- t.test(BLDG_AGE_dec == "1980s")
+sevens <- t.test(BLDG_AGE_dec == "1970s")
+sixes <- t.test(BLDG_AGE_dec == "1960s")
+fives <- t.test(BLDG_AGE_dec == "1950s")
+fours <- t.test(BLDG_AGE_dec == "1940s")
+threes <- t.test(BLDG_AGE_dec == "pre-1940s")
 
-shares <- tibble(Type = c("Single parent household - female", 
-                            "Non-family household - male", 
-                            "Single female household",
-                            "Married couple household",
-                            "Single male household",
-                            "Single parent household - male",
-                            "Non-family household - female"),
-                 `Share` = c(fam_single_female$estimate, 
-                             multi_male$estimate,
-                             single_female$estimate,
-                             married$estimate,
-                             single_male$estimate,
-                             fam_single_male$estimate,
-                             multi_female$estimate),
-                 Low = c(fam_single_female$conf.int[1],
-                         multi_male$conf.int[1],
-                         single_female$conf.int[1],
-                         married$conf.int[1],
-                         single_male$conf.int[1],
-                         fam_single_male$conf.int[1],
-                         multi_female$conf.int[1]),
-                 High = c(fam_single_female$conf.int[2],
-                         multi_male$conf.int[2],
-                         single_female$conf.int[2],
-                         married$conf.int[2],
-                         single_male$conf.int[2],
-                         fam_single_male$conf.int[2],
-                         multi_female$conf.int[2]))
-knitr::kable(shares, caption = "Table 1. Proportions and 95-percent confidence intervals")
+bldgshares <- tibble(Decade = c("2010s", 
+                            "2000s", 
+                            "1990s",
+                            "1980s",
+                            "1970s",
+                            "1960s",
+                            "1950s",
+                            "1940s",
+                            "pre-1940s"),
+                 `Share` = c(twotens$estimate, 
+                             twos$estimate,
+                             nines$estimate,
+                             eights$estimate,
+                             sevens$estimate,
+                             sixes$estimate,
+                             fives$estimate,
+                             fours$estimate,
+                             threes$estimate),
+                 Low = c(twotens$conf.int[1],
+                         twos$conf.int[1],
+                         nines$conf.int[1],
+                         eights$conf.int[1],
+                         sevens$conf.int[1],
+                         sixes$conf.int[1],
+                         fives$conf.int[1],
+                         fours$conf.int[1],
+                         threes$conf.int[1]),
+                 High = c(twotens$conf.int[2],
+                         twos$conf.int[2],
+                         nines$conf.int[2],
+                         eights$conf.int[2],
+                         sevens$conf.int[2],
+                         sixes$conf.int[2],
+                         fives$conf.int[2],
+                         fours$conf.int[2],
+                         threes$conf.int[2]))
+knitr::kable(shares, caption = "Table 2. Proportions and 95-percent confidence intervals")
 ```
 * Figure 6. Percent share of sample by building age
 
-```{r BLDG conf plot, eval=FALSE, message=FALSE, include=FALSE, results='hide'}
-ggplot(shares, aes(x = Type, y = Share, ymin = Low, ymax = High)) +
+```{r BLDG conf plot, message=FALSE, results='hide'}
+ggplot(bldgshares, aes(x = Decade, y = Share, ymin = Low, ymax = High)) +
   geom_bar(stat = "identity") +
-  geom_errorbar(width = 0.5) +
+  geom_errorbar(width = 1) +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 90)) +
-  scale_x_discrete(labels = c("Single parent \nhousehold - female", 
-                            "Non-family \nhousehold - male", 
-                            "Single female \nhousehold",
-                            "Married couple \nhousehold",
-                            "Single male \nhousehold",
-                            "Single parent \nhousehold - male",
-                            "Non-family \nhousehold - female")) +
   scale_y_continuous(name = "Share of population (error bars represent \n95-percent confidence interval)",
                      breaks = seq(0, 0.5, by = .1),
                      labels = c("0", "10%", "20%", "30%", "40%", "50%"))
 ```
+
+* We see that the majority of existing structures were built from 1970 and later, with the 1980s being the single most common decade of construction. The 1940s represent the lowest-represented decade, likely due to the demand and supply shortages caused by WOrld War II. 
