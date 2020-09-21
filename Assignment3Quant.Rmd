@@ -2,29 +2,42 @@
 title: "Assignment 3"
 author: "Ryan Johnson"
 date: "9/17/2020"
-output: html_document
+output: 
+  html_document:
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+    theme: cosmo
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+``` {r load libraries, include=FALSE}
+library(tidyverse)
+library(ggplot2)
 ```
 
-## R Markdown
+## Description
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+# DELETE ME 
+Assignment - For all possible pairs of variables in your dataset, test the relationship between the two variables. Indicate
+the significance and (if appropriate) the magnitude of each relationship.
+As you work on this assignment, you may find that you’ve changed your mind about which variables you
+want to include in your dataset or how you want to define them. That’s not a problem; you can change
+your dataset at any time. Clearly indicate how you’ve decided to change it and why.
+# DELETE ABOVE
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+My data set includes six household level variables - four continuous, and two categorical (both with more than two levels). This data is from the 2018 ACS 1-year survey, filtered to include only those observations collected in Travis County, TX. 
+These variables are:
 
-```{r cars}
-summary(cars)
-```
+1. *HINCP* (household annual income) - cont.
+2. *RNTP* (monthly rent) - cont.
+3. *NP* (number of people per household) - cont.
+4. *BDSP* (number of bedrooms per household) - cont.
+5. *HHT* (household type) - cat.
+6. *BLDG_AGE_dec* (decade of building construction) - cat.
 
-## Including Plots
 
-You can also embed plots, for example:
+As such, to search for relationships, I will be conducting six correlation tests, one chi-square test, and 8 ANOVA tests between the various pairs of variables. 
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
+## Correlation tests
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### Correlation one: HINCP and RNTP
