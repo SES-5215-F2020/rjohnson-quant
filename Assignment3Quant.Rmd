@@ -112,7 +112,7 @@ ggplot(hh_data_a3, aes(x = HINCP, y = NP)) +
                      hjust = 0)
 ```
 
-There is a strong positive correlation between annual household income and household size, as seen in the scatterplot above and the correlation value of 0.262.
+There is a fairly strong positive correlation between annual household income and household size, as seen in the scatterplot above and the correlation value of 0.262.
 
 ### Correlation three: HINCP and BDSP
 
@@ -142,7 +142,7 @@ ggplot(hh_data_a3, aes(x = HINCP, y = BDSP)) +
                      hjust = 0)
 ```
 
-Yet again, we find a strong positive correlation, in this case between annual household income and the number of bedrooms per household. The correlation value is 0.263.
+Yet again, we find a fairly strong positive correlation, in this case between annual household income and the number of bedrooms per household. The correlation value is 0.263.
 
 ### Correlation four: RNTP and NP
 
@@ -202,7 +202,7 @@ ggplot(hh_data_a3, aes(x = RNTP, y = BDSP)) +
                      hjust = 0)
 ```
 
-There is a statistically significant positive correlation between monthly rent and the number of bedrooms per household. The correlation value is 0.310. However, as seen in the scatterplot, this relationship appears to be non-linear, with significant oscillation in the trend line in the $0 to 1,000 rent range.
+There is a statistically significant, strong positive correlation between monthly rent and the number of bedrooms per household. The correlation value is 0.310. However, as seen in the scatterplot, this relationship appears to be non-linear, with significant oscillation in the trend line in the $0 to 1,000 rent range.
 
 ### Correlation six: NP and BDSP
 
