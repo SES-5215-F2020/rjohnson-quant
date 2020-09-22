@@ -22,17 +22,17 @@ library(viridis)
 My data set includes six household level variables - four continuous, and two categorical (both with more than two levels). This data is from the 2018 ACS 1-year survey, filtered to include only those observations collected in Travis County, TX. 
 These variables are:
 
-1. *HINCP* (household annual income) - cont.
-2. *RNTP* (monthly rent) - cont.
-3. *NP* (number of people per household) - cont.
-4. *BDSP* (number of bedrooms per household) - cont.
-5. *HHT_2* (household type) - cat.
-6. *BLDG_AGE_dec* (decade of building construction) - cat.
+1. **HINCP** (household annual income) - cont.
+2. **RNTP** (monthly rent) - cont.
+3. **NP** (number of people per household) - cont.
+4. **BDSP** (number of bedrooms per household) - cont.
+5. **HHT_2** (household type) - cat.
+6. **BLDG_AGE_dec** (decade of building construction) - cat.
 
 
 As such, to search for relationships, I will be conducting six correlation tests, one chi-square test, and 8 ANOVA tests between the various pairs of variables. 
 
-First I load the data, and mutate the *HHT* variable to create four levels from the original seven (by combining gender-differentiated levels), now known as *HHT_2*. This should make relationships strictly between household types (married couple families, single-parent families, and non-families), and not genders, more clear.
+First I load the data, and mutate the **HHT** variable to create four levels from the original seven (by combining gender-differentiated levels), now known as **HHT_2**. This should make relationships strictly between household types (married couple families, single-parent families, and non-families), and not genders, more clear.
 
 ``` {r load data, message=FALSE}
 hh_data_a3 <- read.csv("TravisHH.csv") %>% 
