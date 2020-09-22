@@ -1,7 +1,7 @@
 ---
 title: "Assignment 3"
 author: "Ryan Johnson"
-date: "9/17/2020"
+date: "9/22/2020"
 output: 
   html_document:
     toc: yes
@@ -15,6 +15,7 @@ library(tidyverse)
 library(ggplot2)
 library(ggthemes)
 library(viridis)
+library(corrplot)
 ```
 
 ## Description
@@ -46,6 +47,7 @@ hh_data_a3 <- read.csv("TravisHH.csv") %>%
     HHT_label=="Nonfamily household: Male householder: Living alone"~"Single occupant"))
 ```
 
+_As a note, I want to thank **Ana** for helping me correct the axes on my charts, and **Julia** for being the best motivator/GIF-sender a person could have!_
 
 ## Correlation tests
 
@@ -146,7 +148,7 @@ Yet again, we find a fairly strong positive correlation, in this case between an
 
 ### Correlation four: RNTP and NP
 
-Correlation test between monthly rent and household size.
+Correlation test between monthly rent and household size. In the following two correlations (#4 and #5), I chose to place monthly rent along the x-axis as this resulted in a much more legible visualization of the scatterplot and trend line. 
 
 ```{r correlation 4, message=FALSE}
 correlation4 <- cor.test(hh_data_a3$RNTP, hh_data_a3$NP)
@@ -200,6 +202,7 @@ ggplot(hh_data_a3, aes(x = RNTP, y = BDSP)) +
                                     "to",
                                     prettyNum(correlation5$conf.int[2], digits = 2)),
                      hjust = 0)
+
 ```
 
 There is a statistically significant, strong positive correlation between monthly rent and the number of bedrooms per household. The correlation value is 0.310. However, as seen in the scatterplot, this relationship appears to be non-linear, with significant oscillation in the trend line in the $0 to 1,000 rent range.
@@ -258,6 +261,42 @@ chi_sq$observed
 chi_sq$expected
 ```
 
+Coming up with a way to visualize these results was a challenge, but I believe that a heatmap is an elegant and fairly powerful way to do so. I toyed with a few different methods for creating a heatmap before coming to the following solution.
+
+I took the difference between observed and expected values from the chi-squared test, and used the results to define a new data frame **C_diff_data**. I then plot this data frame as a heatmap, with the two variables on the axes and the difference as the fill, to visualize the distribution of households by age of construction and household type. 
+
+``` {r attempt at visualizing chi-square results, message=FALSE}
+C_diff <- chi_sq$observed - chi_sq$expected
+
+C_diff_data <- as.data.frame(C_diff)
+
+```
+
+```{r histogram of above, message=FALSE}
+C_diff_heatmap <- ggplot(C_diff_data, 
+       aes(x = hh_data_a3.BLDG_AGE_dec,
+           y = hh_data_a3.HHT_2,
+           fill = Freq)) +
+  geom_tile() +
+  scale_x_discrete(name = "\nDecade of construction (BLDG_AGE_dec)") +
+  scale_y_discrete(name = "Household type (HHT_2)\n") +
+  theme_economist_white() +
+  theme(legend.key.size =  unit(0.7, "cm"),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 15)) +
+  scale_fill_gradient2(name = "Difference between observed \nand expected values",
+                       midpoint=0, 
+                       low="purple", 
+                       mid="white",
+                       high="orange", 
+                       space ="Lab") +
+  ggtitle(label = "Correlation between household type\nand decade of construction\n")
+
+C_diff_heatmap
+```
+
+The resulting chart highlights that single occupant households are *over-represented* (orange values) in housing built in the 2010s, while single-parent family households are *under-represented* (purple values) in housing built in the 1960s and 2010s, among other less-distinct differences. 
+
 ## Analysis of variance (ANOVA) tests
 
 The ANOVA test will explore the potential relationship between each categorical variable and the continuous variables in my dataset. In total, eight ANOVA tests will be run - four between household type and the four continuous variables, and four between decade of construction and the four continuous variables.
@@ -284,16 +323,18 @@ as_tibble(cbind(pair = row.names(differences1$HHT_2),
 ```
 
 ```{r box 1, message=FALSE}
+options(scipen = 999)
 ggplot(hh_data_a3, aes(x = HHT_2, y = HINCP)) +
   geom_boxplot() +
   theme_economist() +
-  theme(axis.text.x = element_text(angle = 0)) +
-  scale_x_discrete(name = "\nHousehold type") +
-  scale_y_continuous(name = "Annual household income\n", 
+  theme(axis.text.x = element_text(angle = 90)) +
+  scale_x_discrete(name = "Household type\n") +
+  scale_y_continuous(name = "\nAnnual household income", 
                      breaks = seq(0, 1000000, by = 100000),
                      labels = paste("$", 
                                     prettyNum(seq(0, 1000000, by = 100000),
-                                              big.mark = ",")))
+                                              big.mark = ","))) +
+  coord_flip()
 
 ```
 
@@ -321,16 +362,18 @@ as_tibble(cbind(pair = row.names(differences2$HHT_2),
 ```
 
 ```{r box 2, message=FALSE}
+options(scipen = 999)
 ggplot(hh_data_a3, aes(x = HHT_2, y = RNTP)) +
   geom_boxplot() +
   theme_economist() +
   theme(axis.text.x = element_text(angle = 0)) +
-  scale_x_discrete(name = "\nHousehold type") +
-  scale_y_continuous(name = "Monthly rent\n", 
+  scale_x_discrete(name = "\nHousehold type\n") +
+  scale_y_continuous(name = "\nMonthly rent\n", 
                      breaks = seq(0, 3000, by = 500),
                      labels = paste("$", 
                                     prettyNum(seq(0, 3000, by = 500),
-                                              big.mark = ",")))
+                                              big.mark = ","))) +
+  coord_flip()
 
 ```
 
@@ -362,10 +405,11 @@ ggplot(hh_data_a3, aes(x = HHT_2, y = NP)) +
   geom_boxplot() +
   theme_economist() +
   theme(axis.text.x = element_text(angle = 0)) +
-  scale_x_discrete(name = "\nHousehold type") +
-  scale_y_continuous(name = "Household size (people)\n", 
+  scale_x_discrete(name = "Household type\n") +
+  scale_y_continuous(name = "\nHousehold size (people)", 
                      breaks = seq(0, 15, by = 1),
-                     labels = paste(prettyNum(seq(0, 15, by = 1))))
+                     labels = paste(prettyNum(seq(0, 15, by = 1)))) +
+  coord_flip()
 
 ```
 
@@ -397,10 +441,11 @@ ggplot(hh_data_a3, aes(x = HHT_2, y = BDSP)) +
   geom_boxplot() +
   theme_economist() +
   theme(axis.text.x = element_text(angle = 0)) +
-  scale_x_discrete(name = "\nHousehold type") +
-  scale_y_continuous(name = "Bedrooms per household\n", 
+  scale_x_discrete(name = "Household type\n") +
+  scale_y_continuous(name = "\nBedrooms per household", 
                      breaks = seq(0, 6, by = 1),
-                     labels = paste(prettyNum(seq(0, 6, by = 1))))
+                     labels = paste(prettyNum(seq(0, 6, by = 1)))) +
+  coord_flip()
 
 ```
 
@@ -428,6 +473,7 @@ as_tibble(cbind(pair = row.names(differences5$BLDG_AGE_dec),
 ```
 
 ```{r box 5 cont, message=FALSE}
+options(scipen = 999)
 ggplot(hh_data_a3, aes(x = BLDG_AGE_dec, y = HINCP)) +
   geom_boxplot() +
   theme_economist() +
@@ -441,7 +487,9 @@ ggplot(hh_data_a3, aes(x = BLDG_AGE_dec, y = HINCP)) +
 ```
 
 Same as above, but with household incomes plotted on a logarithmic scale:
+
 ```{r box 5 log, message=FALSE}
+options(scipen = 999)
 ggplot(hh_data_a3, aes(x = BLDG_AGE_dec, y = HINCP)) +
   geom_boxplot() +
   theme_economist() +
@@ -453,6 +501,7 @@ ggplot(hh_data_a3, aes(x = BLDG_AGE_dec, y = HINCP)) +
                                     prettyNum(c(0, 100, 1000, 10000, 100000, 1000000))))
 
 ```
+
 The two box plots above together show the trend of variation among household incomes by building age. Generally, as building age decreases, household incomes rise, but we do see a local peak in incomes in 1940s- and 1950s-built households, followed by a drop to the lowest median incomes in 1980s-built households. 
 
 ### ANOVA test six: RNTP and BLDG_AGE_dec
@@ -477,6 +526,7 @@ as_tibble(cbind(pair = row.names(differences6$BLDG_AGE_dec),
 ```
 
 ```{r box 6 cont, message=FALSE}
+options(scipen = 999)
 ggplot(hh_data_a3, aes(x = BLDG_AGE_dec, y = RNTP)) +
   geom_boxplot() +
   theme_economist() +
