@@ -13,17 +13,11 @@ output:
 ``` {r load libraries, include=FALSE}
 library(tidyverse)
 library(ggplot2)
+library(ggthemes)
+library(viridis)
 ```
 
 ## Description
-
-# DELETE ME 
-Assignment - For all possible pairs of variables in your dataset, test the relationship between the two variables. Indicate
-the significance and (if appropriate) the magnitude of each relationship.
-As you work on this assignment, you may find that you’ve changed your mind about which variables you
-want to include in your dataset or how you want to define them. That’s not a problem; you can change
-your dataset at any time. Clearly indicate how you’ve decided to change it and why.
-# DELETE ABOVE
 
 My data set includes six household level variables - four continuous, and two categorical (both with more than two levels). This data is from the 2018 ACS 1-year survey, filtered to include only those observations collected in Travis County, TX. 
 These variables are:
@@ -32,12 +26,541 @@ These variables are:
 2. *RNTP* (monthly rent) - cont.
 3. *NP* (number of people per household) - cont.
 4. *BDSP* (number of bedrooms per household) - cont.
-5. *HHT* (household type) - cat.
+5. *HHT_2* (household type) - cat.
 6. *BLDG_AGE_dec* (decade of building construction) - cat.
 
 
 As such, to search for relationships, I will be conducting six correlation tests, one chi-square test, and 8 ANOVA tests between the various pairs of variables. 
 
+First I load the data, and mutate the *HHT* variable to create four levels from the original seven (by combining gender-differentiated levels), now known as *HHT_2*. This should make relationships strictly between household types (married couple families, single-parent families, and non-families), and not genders, more clear.
+
+``` {r load data, message=FALSE}
+hh_data_a3 <- read.csv("TravisHH.csv") %>% 
+  mutate(HHT_2 = case_when(
+    HHT_label=="Married couple household"~"Married couple",
+    HHT_label=="Other family household: Female householder, no spouse present"~"Single parent family",
+    HHT_label=="Other family household: Male householder, no spouse present"~"Single parent family",
+    HHT_label=="Nonfamily household: Male householder: Not living alone"~"Non-family roommates",
+    HHT_label=="Nonfamily household: Female householder: Not living alone"~"Non-family roommates",
+    HHT_label=="Nonfamily household: Female householder: Living alone"~"Single occupant",
+    HHT_label=="Nonfamily household: Male householder: Living alone"~"Single occupant"))
+```
+
+
 ## Correlation tests
 
+These Pearson correlation tests will explore the relationships and possible correlations between my continuous variables. 
+
 ### Correlation one: HINCP and RNTP
+
+Correlation test between annual household income and monthly rent.
+
+```{r correlation 1, message=FALSE}
+correlation1 <- cor.test(hh_data_a3$HINCP, hh_data_a3$RNTP)
+
+correlation1
+```
+
+Scatterplot of this correlation:
+
+``` {r scatterplot 1, message=FALSE}
+ggplot(hh_data_a3, aes(x = HINCP, y = RNTP)) +
+  geom_point(size = 0.5, alpha = 0.25, position = "jitter") +
+  geom_smooth() +
+  theme_economist_white() +
+  scale_x_continuous(name = "\nAnnual household income ($)") +
+  scale_y_continuous(name = "Monthly rent\n",
+                     breaks = seq(0, 3000, by = 500),
+                     labels = paste("$",
+                                    prettyNum(seq(0, 3000, by = 500),
+                                              big.mark = ","))) +
+  annotate(geom = "text", x = 0, y = 2750,
+           label = paste("Correlation (95-percent confidence):",
+                         prettyNum(correlation1$conf.int[1], digits = 2),
+                                    "to",
+                                    prettyNum(correlation1$conf.int[2], digits = 2)),
+                     hjust = 0)
+```
+
+As we see from the correlation value of 0.385 and the scatterplot above, there is a strong positive correlation between annual household income and monthly rent. 
+
+### Correlation two: HINCP and NP
+
+Correlation test between annual household income and household size (number of people per household).
+
+```{r correlation 2, message=FALSE}
+correlation2 <- cor.test(hh_data_a3$HINCP, hh_data_a3$NP)
+
+correlation2
+```
+
+Scatterplot of this correlation:
+
+``` {r scatterplot 2, message=FALSE}
+ggplot(hh_data_a3, aes(x = HINCP, y = NP)) +
+  geom_point(size = 0.5, alpha = 0.25, position = "jitter") +
+  geom_smooth() +
+  theme_economist_white() +
+  scale_x_continuous(name = "\nAnnual household income ($)") +
+  scale_y_continuous(name = "Household size (people per household)\n",
+                     breaks = seq(0, 15, by = 1)) +
+  annotate(geom = "text", x = 0, y = 12.5,
+           label = paste("Correlation (95-percent confidence):",
+                         prettyNum(correlation2$conf.int[1], digits = 2),
+                                    "to",
+                                    prettyNum(correlation2$conf.int[2], digits = 2)),
+                     hjust = 0)
+```
+
+There is a strong positive correlation between annual household income and household size, as seen in the scatterplot above and the correlation value of 0.262.
+
+### Correlation three: HINCP and BDSP
+
+Correlation test between annual household income and number of bedrooms per household.
+
+```{r correlation 3, message=FALSE}
+correlation3 <- cor.test(hh_data_a3$HINCP, hh_data_a3$BDSP)
+
+correlation3
+```
+
+Scatterplot of this correlation:
+
+``` {r scatterplot 3, message=FALSE}
+ggplot(hh_data_a3, aes(x = HINCP, y = BDSP)) +
+  geom_point(size = 0.5, alpha = 0.25, position = "jitter") +
+  geom_smooth() +
+  theme_economist_white() +
+  scale_x_continuous(name = "\nAnnual household income ($)") +
+  scale_y_continuous(name = "Bedrooms per household \n",
+                     breaks = seq(0, 6, by = 1)) +
+  annotate(geom = "text", x = 400000, y = 0.5,
+           label = paste("Correlation (95-percent confidence):",
+                         prettyNum(correlation3$conf.int[1], digits = 2),
+                                    "to",
+                                    prettyNum(correlation3$conf.int[2], digits = 2)),
+                     hjust = 0)
+```
+
+Yet again, we find a strong positive correlation, in this case between annual household income and the number of bedrooms per household. The correlation value is 0.263.
+
+### Correlation four: RNTP and NP
+
+Correlation test between monthly rent and household size.
+
+```{r correlation 4, message=FALSE}
+correlation4 <- cor.test(hh_data_a3$RNTP, hh_data_a3$NP)
+
+correlation4
+```
+
+Scatterplot of this correlation:
+
+``` {r scatterplot 4, message=FALSE}
+ggplot(hh_data_a3, aes(x = RNTP, y = NP)) +
+  geom_point(size = 0.5, alpha = 0.25, position = "jitter") +
+  geom_smooth() +
+  theme_economist_white() +
+  scale_x_continuous(name = "\nMonthly rent ($)") +
+  scale_y_continuous(name = "Household size \n(number of people)\n",
+                     breaks = seq(0, 15, by = 1)) +
+  annotate(geom = "text", x = 0, y = 12.5,
+           label = paste("Correlation (95-percent confidence):",
+                         prettyNum(correlation4$conf.int[1], digits = 2),
+                                    "to",
+                                    prettyNum(correlation4$conf.int[2], digits = 2)),
+                     hjust = 0)
+```
+
+There is a very weak but statistically significant negative correlation between monthly rent and the size of a household. The correlation value is -0.058, with a p-value of ~0.0003.
+
+### Correlation five: RNTP and BDSP
+
+Correlation test between monthly rent and number of bedrooms per household.
+
+```{r correlation 5, message=FALSE}
+correlation5 <- cor.test(hh_data_a3$RNTP, hh_data_a3$BDSP)
+
+correlation5
+```
+
+Scatterplot of this correlation:
+
+``` {r scatterplot 5, message=FALSE}
+ggplot(hh_data_a3, aes(x = RNTP, y = BDSP)) +
+  geom_point(size = 0.5, alpha = 0.25, position = "jitter") +
+  geom_smooth() +
+  theme_economist_white() +
+  scale_x_continuous(name = "\nMonthly rent ($)") +
+  scale_y_continuous(name = "Bedrooms per household\n",
+                     breaks = seq(0, 5, by = 1)) +
+  annotate(geom = "text", x = 0, y = 5.5,
+           label = paste("Correlation (95-percent confidence):",
+                         prettyNum(correlation5$conf.int[1], digits = 2),
+                                    "to",
+                                    prettyNum(correlation5$conf.int[2], digits = 2)),
+                     hjust = 0)
+```
+
+There is a statistically significant positive correlation between monthly rent and the number of bedrooms per household. The correlation value is 0.310. However, as seen in the scatterplot, this relationship appears to be non-linear, with significant oscillation in the trend line in the $0 to 1,000 rent range.
+
+### Correlation six: NP and BDSP
+
+Correlation test between household size and the number of bedrooms per household.
+
+```{r correlation 6, message=FALSE}
+correlation6 <- cor.test(hh_data_a3$NP, hh_data_a3$BDSP)
+
+correlation6
+```
+
+Scatterplot of this correlation:
+
+``` {r scatterplot 6, message=FALSE}
+ggplot(hh_data_a3, aes(x = NP, y = BDSP)) +
+  geom_point(size = 0.5, alpha = 0.25, position = "jitter") +
+  geom_smooth() +
+  theme_economist_white() +
+  scale_x_continuous(name = "\nHousehold size (number of people)") +
+  scale_y_continuous(name = "Bedrooms per household\n",
+                     breaks = seq(0, 6, by = 1)) +
+  annotate(geom = "text", x = 0, y = 5.5,
+           label = paste("Correlation (95-percent confidence):",
+                         prettyNum(correlation6$conf.int[1], digits = 2),
+                                    "to",
+                                    prettyNum(correlation6$conf.int[2], digits = 2)),
+                     hjust = 0)
+```
+
+There is a very strong positive correlation between the size of a household and the number of bedrooms therein. The correlation value is 0.536.
+
+## Chi-square test
+
+The Chi-square test will explore the potential relationship between the two categorical variables in my dataset, the decade of construction (BLDG_AGE_dec) and the household type (HHT_2).
+
+### Chi-square test one: BLD_AGE_dec and HHT_2
+
+Association between decade of construction and household type. 
+
+``` {r chi-square, message=FALSE}
+chi_sq <- chisq.test(hh_data_a3$BLDG_AGE_dec, hh_data_a3$HHT_2) 
+
+chi_sq
+```
+
+With a p-value of 1.273e-15, the relationship is statistically significant at a 95-percent confidence level.
+
+```{r chi observed, message=FALSE}
+chi_sq$observed
+```
+
+```{r chi expected, message=FALSE}
+chi_sq$expected
+```
+
+## Analysis of variance (ANOVA) test
+
+The ANOVA test will explore the potential relationship between each categorical variable and the continuous variables in my dataset. In total, eight ANOVA tests will be run - four between household type and the four continuous variables, and four between decade of construction and the four continuous variables.
+
+### ANOVA test one: HINCP and HHT_2
+
+Test of relationship between annual household income and household type.
+
+```{r anova 1, message=FALSE}
+anova1 <- aov(HINCP ~ HHT_2, data = hh_data_a3)
+
+summary(anova1)
+
+```
+
+As indicated by the significance code and low p-value (<2e-16), there is a statistically significant relationship between annual household income and household type. The magnitude of the associations between each category can be seen by conducting a Tukey's Honestly Significant Difference test and visualizing the data on a box plot. 
+
+```{r tukeyhsd 1, message=FALSE}
+differences1 <- TukeyHSD(anova1)
+
+as_tibble(cbind(pair = row.names(differences1$HHT_2),
+                differences1$HHT_2))
+
+```
+
+```{r box 1, message=FALSE}
+ggplot(hh_data_a3, aes(x = HHT_2, y = HINCP)) +
+  geom_boxplot() +
+  theme_economist() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "\nHousehold type") +
+  scale_y_continuous(name = "Annual household income\n", 
+                     breaks = seq(0, 1000000, by = 100000),
+                     labels = paste("$", 
+                                    prettyNum(seq(0, 1000000, by = 100000),
+                                              big.mark = ",")))
+
+```
+
+We see that married couple households and non-family roommate households see a higher annual income that single occupant and single parent family households. 
+
+### ANOVA test two: RNTP and HHT_2
+
+Test of relationship between monthly rent and household type.
+
+```{r anova 2, message=FALSE}
+anova2 <- aov(RNTP ~ HHT_2, data = hh_data_a3)
+
+summary(anova2)
+
+```
+
+Again, as indicated by the significance code and low p-value (<2e-16), there is a statistically significant relationship between monthly rent and household type. I will again conduct a Tukey's HSD test and visualize the data on a box plot. 
+
+```{r tukeyhsd 2, message=FALSE}
+differences2 <- TukeyHSD(anova2)
+
+as_tibble(cbind(pair = row.names(differences2$HHT_2),
+                differences2$HHT_2))
+
+```
+
+```{r box 2, message=FALSE}
+ggplot(hh_data_a3, aes(x = HHT_2, y = RNTP)) +
+  geom_boxplot() +
+  theme_economist() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "\nHousehold type") +
+  scale_y_continuous(name = "Monthly rent\n", 
+                     breaks = seq(0, 3000, by = 500),
+                     labels = paste("$", 
+                                    prettyNum(seq(0, 3000, by = 500),
+                                              big.mark = ",")))
+
+```
+
+We see that non-family roommate households on average pay higher monthly rents than all other household types, but also have the widest interquartile range of all household types. Single-occupant households pay the lowest average monthly rent by a small margin. 
+
+### ANOVA test three: NP and HHT_2
+
+Test of relationship between household size and household type.
+
+```{r anova 3, message=FALSE}
+anova3 <- aov(NP ~ HHT_2, data = hh_data_a3)
+
+summary(anova3)
+
+```
+
+Once more we see a very low p-value (<2e-16), indicating that there is a statistically significant relationship between household size and household type. I will again conduct a Tukey's HSD test and visualize the data on a box plot. 
+
+```{r tukeyhsd 3, message=FALSE}
+differences3 <- TukeyHSD(anova3)
+
+as_tibble(cbind(pair = row.names(differences3$HHT_2),
+                differences3$HHT_2))
+
+```
+
+```{r box 3, message=FALSE}
+ggplot(hh_data_a3, aes(x = HHT_2, y = NP)) +
+  geom_boxplot() +
+  theme_economist() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "\nHousehold type") +
+  scale_y_continuous(name = "Household size (people)\n", 
+                     breaks = seq(0, 15, by = 1),
+                     labels = paste(prettyNum(seq(0, 15, by = 1))))
+
+```
+
+This box plot shows that the median married couple household has more members (4) than other household types, but also that married couple households have the widest interquartile range of all household types (between 2 and 5). Single-occupant households, by definition, contain only one member. 
+
+### ANOVA test four: BDSP and HHT_2
+
+Test of relationship between the number of bedrooms per household and household type.
+
+```{r anova 4, message=FALSE}
+anova4 <- aov(BDSP ~ HHT_2, data = hh_data_a3)
+
+summary(anova4)
+
+```
+
+Again, the very low p-value (<2e-16) indicates that there is a statistically significant relationship between number of bedrooms in a household, and household type. I will conduct a Tukey's HSD test and visualize the data on a box plot. 
+
+```{r tukeyhsd 4, message=FALSE}
+differences4 <- TukeyHSD(anova4)
+
+as_tibble(cbind(pair = row.names(differences4$HHT_2),
+                differences4$HHT_2))
+
+```
+
+```{r box 4, message=FALSE}
+ggplot(hh_data_a3, aes(x = HHT_2, y = BDSP)) +
+  geom_boxplot() +
+  theme_economist() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "\nHousehold type") +
+  scale_y_continuous(name = "Bedrooms per household\n", 
+                     breaks = seq(0, 6, by = 1),
+                     labels = paste(prettyNum(seq(0, 6, by = 1))))
+
+```
+
+This box plot does a great job of qualifying the relationship between these variables. Every household type besides single occupant households has an interquartile range of 1, and a median value of two bedrooms. Single-occupant households have an interquartile range _and_ a median value of 1. While the relationship between bedrooms and household size is statistically significant, it is not particularly telling. 
+
+### ANOVA test five: HINCP and BLDG_AGE_dec
+
+Test of relationship between annual household income and decade of construction.
+
+```{r anova 5, message=FALSE}
+anova5 <- aov(HINCP ~ BLDG_AGE_dec, data = hh_data_a3)
+
+summary(anova5)
+
+```
+
+In this test we see a very low p-value (<2e-16), indicating that there is a statistically significant relationship between annual household income and the decade of building construction. I will conduct a Tukey's HSD test and visualize the data on a box plot. 
+
+```{r tukeyhsd 5, message=FALSE}
+differences5 <- TukeyHSD(anova5)
+
+as_tibble(cbind(pair = row.names(differences5$BLDG_AGE_dec),
+                differences5$BLDG_AGE_dec))
+
+```
+
+```{r box 5 cont, message=FALSE}
+ggplot(hh_data_a3, aes(x = BLDG_AGE_dec, y = HINCP)) +
+  geom_boxplot() +
+  theme_economist() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "\nDecade of construction") +
+  scale_y_continuous(name = "Annual household income\n", 
+                     breaks = seq(0, 1000000, by = 100000),
+                     labels = paste("$",
+                                    prettyNum(seq(0, 1000000, by = 100000))))
+
+```
+
+Same as above, but with household incomes plotted on a logarithmic scale:
+```{r box 5 log, message=FALSE}
+ggplot(hh_data_a3, aes(x = BLDG_AGE_dec, y = HINCP)) +
+  geom_boxplot() +
+  theme_economist() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "\nDecade of construction") +
+  scale_y_log10(name = "Annual household income\n", 
+                     breaks = c(0, 100, 1000, 10000, 100000, 1000000),
+                     labels = paste("$",
+                                    prettyNum(c(0, 100, 1000, 10000, 100000, 1000000))))
+
+```
+The two box plots above together show the trend of variation among household incomes by building age. Generally, as building age decreases, household incomes rise, but we do see a local peak in incomes in 1940s- and 1950s-built households, followed by a drop to the lowest median incomes in 1980s-built households. 
+
+### ANOVA test six: RNTP and BLDG_AGE_dec
+
+Test of relationship between monthly rent and decade of construction.
+
+```{r anova 6, message=FALSE}
+anova6 <- aov(RNTP ~ BLDG_AGE_dec, data = hh_data_a3)
+
+summary(anova6)
+
+```
+
+Yet again, a very low p-value (<2e-16), indicating that there is a statistically significant relationship between monthly rent and the decade of building construction. I will conduct another Tukey's HSD test and visualize the data on a box plot. 
+
+```{r tukeyhsd 6, message=FALSE}
+differences6 <- TukeyHSD(anova6)
+
+as_tibble(cbind(pair = row.names(differences6$BLDG_AGE_dec),
+                differences6$BLDG_AGE_dec))
+
+```
+
+```{r box 6 cont, message=FALSE}
+ggplot(hh_data_a3, aes(x = BLDG_AGE_dec, y = RNTP)) +
+  geom_boxplot() +
+  theme_economist() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "\nDecade of construction") +
+  scale_y_continuous(name = "Monthly rent\n", 
+                     breaks = seq(0, 3000, by = 500),
+                     labels = paste("$",
+                                    prettyNum(seq(0, 3000, by = 500))))
+
+```
+
+
+As seen above, households built in the 1950s have the widest interquartile range of monthly rent, while households built in the 1940s pay the highest median rents, followed by households built within the last 20 years. As could possibly be inferred from the household income trends above, households built in the 1970s and 1980s pay the lowest median rents. 
+
+### ANOVA test seven: NP and BLDG_AGE_dec
+
+Test of relationship between household size and decade of construction.
+
+```{r anova 7, message=FALSE}
+anova7 <- aov(NP ~ BLDG_AGE_dec, data = hh_data_a3)
+
+summary(anova7)
+
+```
+
+Once more, in this test we see a very low p-value (<2e-16), indicating that there is a statistically significant relationship between household size and the age of building construction. Next, the Tukey's HSD test and accompanying box plot. 
+
+```{r tukeyhsd 7, message=FALSE}
+differences7 <- TukeyHSD(anova7)
+
+as_tibble(cbind(pair = row.names(differences7$BLDG_AGE_dec),
+                differences7$BLDG_AGE_dec))
+
+```
+
+```{r box 7 cont, message=FALSE}
+ggplot(hh_data_a3, aes(x = BLDG_AGE_dec, y = NP)) +
+  geom_boxplot() +
+  theme_economist() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "\nDecade of construction") +
+  scale_y_continuous(name = "Household size (people)\n", 
+                     breaks = seq(0, 15, by = 1),
+                     labels = paste(prettyNum(seq(0, 15, by = 1))))
+
+```
+
+This box plot shows that the variation of household size by decade of construction, while significant, is small - all categories have a median value of either 2 or 3 people, and almost all interquartile ranges are between 2 and 4 people. 
+
+One notable exception is households built in the 2010s. These have a median size of 2 people, and interquartile range of between 1 and 3 people (not to mention an absolute maximum value of 14 people) - this may be indicative of a recent trend toward building smaller housing units, as well as possibly student housing or other dormitory-style spaces. 
+
+### ANOVA test eight: BDSP and BLDG_AGE_dec
+
+Test of relationship between bedrooms per household and decade of construction.
+
+```{r anova 8, message=FALSE}
+anova8 <- aov(BDSP ~ BLDG_AGE_dec, data = hh_data_a3)
+
+summary(anova8)
+
+```
+
+In this test we see a low p-value (<4.53e-10), indicating that there is a statistically significant relationship between annual bedrooms per household and the age of building construction. Again, the Tukey's HSD test and accompanying box plot. 
+
+```{r tukeyhsd 8, message=FALSE}
+differences8 <- TukeyHSD(anova8)
+
+as_tibble(cbind(pair = row.names(differences8$BLDG_AGE_dec),
+                differences8$BLDG_AGE_dec))
+
+```
+
+```{r box 8 cont, message=FALSE}
+ggplot(hh_data_a3, aes(x = BLDG_AGE_dec, y = BDSP)) +
+  geom_boxplot() +
+  theme_economist() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "\nDecade of construction") +
+  scale_y_continuous(name = "Bedrooms per household\n", 
+                     breaks = seq(0, 6, by = 1),
+                     labels = paste(prettyNum(seq(0, 6, by = 1))))
+
+```
+
+This box plot shows that again while the relationship between bedrooms per household and decade of construciton is statistically significant, the magnitude of the relationship is small - in fact, all categories have a median value 2 bedrooms, and most interquartile ranges are between 1 and 3. This is not surprising given the narrow overall range in the data (0 to 5).
+
