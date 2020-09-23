@@ -31,9 +31,9 @@ These variables are:
 6. **BLDG_AGE_dec** (decade of building construction) - cat.
 
 
-As such, to search for relationships, I will be conducting six correlation tests, one chi-square test, and 8 ANOVA tests between the various pairs of variables. 
+To search for relationships I will be conducting six correlation tests, one chi-square test, and 8 ANOVA tests between the various pairs of variables. 
 
-First I load the data, and mutate the **HHT** variable to create four levels from the original seven (by combining gender-differentiated levels), now known as **HHT_2**. This should make relationships strictly between household types (married couple families, single-parent families, and non-families), and not genders, more clear.
+First I load the data, and mutate the **HHT** variable to create four levels from the original seven (by combining gender-differentiated levels), now known as **HHT_2**. This should make relationships strictly between household types (married couple families, single-parent families, non-family roommates, and single occupants), not genders, more clear.
 
 ``` {r load data, message=FALSE}
 hh_data_a3 <- read.csv("TravisHH.csv") %>% 
@@ -205,7 +205,7 @@ ggplot(hh_data_a3, aes(x = RNTP, y = BDSP)) +
 
 ```
 
-There is a statistically significant, strong positive correlation between monthly rent and the number of bedrooms per household. The correlation value is 0.310. However, as seen in the scatterplot, this relationship appears to be non-linear, with significant oscillation in the trend line in the $0 to 1,000 rent range.
+There is a statistically significant, strong positive correlation between monthly rent and the number of bedrooms per household. The correlation value is 0.310. However, as seen in the scatterplot, this relationship appears to be non-linear, with significant oscillation in the trend line in the $0-to-1,000 rent range.
 
 ### Correlation six: NP and BDSP
 
@@ -263,7 +263,7 @@ chi_sq$expected
 
 Coming up with a way to visualize these results was a challenge, but I believe that a heatmap is an elegant and fairly powerful way to do so. I toyed with a few different methods for creating a heatmap before coming to the following solution.
 
-I took the difference between observed and expected values from the chi-squared test, and used the results to define a new data frame **C_diff_data**. I then plot this data frame as a heatmap, with the two variables on the axes and the difference as the fill, to visualize the distribution of households by age of construction and household type. 
+I took the difference between observed and expected values from the chi-squared test, and used the results to define a new data frame **C_diff_data**. I then plot this data frame as a heatmap, with one variable on each axis and the magnitude of difference as the fill, to visualize the distribution of households by age of construction and household type. 
 
 ``` {r attempt at visualizing chi-square results, message=FALSE}
 C_diff <- chi_sq$observed - chi_sq$expected
@@ -272,7 +272,7 @@ C_diff_data <- as.data.frame(C_diff)
 
 ```
 
-```{r histogram of above, message=FALSE}
+```{r heatmap of above, message=FALSE}
 C_diff_heatmap <- ggplot(C_diff_data, 
        aes(x = hh_data_a3.BLDG_AGE_dec,
            y = hh_data_a3.HHT_2,
@@ -283,13 +283,16 @@ C_diff_heatmap <- ggplot(C_diff_data,
   theme_economist_white() +
   theme(legend.key.size =  unit(0.7, "cm"),
         plot.title = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 15)) +
+        axis.text.x = element_text(angle = 15),
+        legend.text = element_text(size = 8)) +
   scale_fill_gradient2(name = "Difference between observed \nand expected values",
                        midpoint=0, 
                        low="purple", 
                        mid="white",
                        high="orange", 
-                       space ="Lab") +
+                       space ="Lab",
+                       breaks = seq(-30, 40, by = 10),
+                       labels = seq(-30, 40, by = 10)) +
   ggtitle(label = "Correlation between household type\nand decade of construction\n")
 
 C_diff_heatmap
@@ -299,7 +302,7 @@ The resulting chart highlights that single occupant households are *over-represe
 
 ## Analysis of variance (ANOVA) tests
 
-The ANOVA test will explore the potential relationship between each categorical variable and the continuous variables in my dataset. In total, eight ANOVA tests will be run - four between household type and the four continuous variables, and four between decade of construction and the four continuous variables.
+The ANOVA tests will explore the potential relationship between each categorical variable and the continuous variables in my dataset. In total, I will run eight ANOVA tests - four between household type and the continuous variables, and four between decade of construction and the continuous variables.
 
 ### ANOVA test one: HINCP and HHT_2
 
@@ -612,5 +615,5 @@ ggplot(hh_data_a3, aes(x = BLDG_AGE_dec, y = BDSP)) +
 
 ```
 
-This box plot shows that again while the relationship between bedrooms per household and decade of construciton is statistically significant, the magnitude of the relationship is small - in fact, all categories have a median value 2 bedrooms, and most interquartile ranges are between 1 and 3. This is not surprising given the narrow overall range in the data (0 to 5).
+This box plot shows that again while the relationship between bedrooms per household and decade of construction is statistically significant, the magnitude of the relationship is small - in fact, all categories have a median value 2 bedrooms, and most interquartile ranges are between 1 and 3. This is not surprising given the narrow overall range in the data (0 to 5).
 
