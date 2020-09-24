@@ -284,8 +284,9 @@ C_diff_heatmap <- ggplot(C_diff_data,
   theme(legend.key.size =  unit(0.7, "cm"),
         plot.title = element_text(hjust = 0.5),
         axis.text.x = element_text(angle = 15),
-        legend.text = element_text(size = 8)) +
-  scale_fill_gradient2(name = "Difference between observed \nand expected values",
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 10)) +
+  scale_fill_gradient2(name = "Difference between observed \nand expected values\n",
                        midpoint=0, 
                        low="purple", 
                        mid="white",
