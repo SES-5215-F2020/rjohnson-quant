@@ -1,0 +1,42 @@
+---
+title: "Assignment 4"
+author: "Ryan Johnson"
+date: "9/24/2020"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+    theme: cosmo
+---
+
+```{r data import libraries, message = FALSE, include=FALSE}
+library(ggplot2)
+library(tidyverse)
+```
+
+```{r sci notation, message=FALSE}
+options(scipen = 9)
+```
+
+``` {r load data, message=FALSE}
+hh_data_a3 <- read.csv("TravisHH.csv") %>% 
+  mutate(HHT_2 = case_when(
+    HHT_label=="Married couple household"~"Married couple",
+    HHT_label=="Other family household: Female householder, no spouse present"~"Single parent family",
+    HHT_label=="Other family household: Male householder, no spouse present"~"Single parent family",
+    HHT_label=="Nonfamily household: Male householder: Not living alone"~"Non-family roommates",
+    HHT_label=="Nonfamily household: Female householder: Not living alone"~"Non-family roommates",
+    HHT_label=="Nonfamily household: Female householder: Living alone"~"Single occupant",
+    HHT_label=="Nonfamily household: Male householder: Living alone"~"Single occupant"))
+```
+
+Below, "NP" is excluded because it interferes with HHT_2 - by definition, the only observations with a household size of 1 are single-occupant households. 
+
+```{r linear regression, message=FALSE}
+model1 <- lm(RNTP ~ HINCP + BDSP + BLDG_AGE_dec + HHT_2, 
+            data = hh_data_a3)
+
+summary(model1)
+```
+
