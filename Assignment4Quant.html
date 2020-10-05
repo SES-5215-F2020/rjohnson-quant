@@ -1534,7 +1534,19 @@ div.tocify {
 </div>
 
 
-<pre class="r"><code>options(scipen = 9)</code></pre>
+<div id="description" class="section level2">
+<h2>Description</h2>
+<p>In this exercise, I will estimate a linear regression model to predict the values of one of my continuous variables, monthly rent (<strong>RNTP</strong>), based on the values of the other variables.</p>
+<p>These independent variables are:</p>
+<ol style="list-style-type: decimal">
+<li>Annual household income (<strong>HINCP</strong>)</li>
+<li>Number of bedrooms (<strong>BDSP</strong>)</li>
+<li>Decade of construction (<strong>BLDG_AGE_dec</strong>)</li>
+<li>Household type (<strong>HHT_label</strong>)</li>
+</ol>
+</div>
+<div id="linear-regression-model" class="section level2">
+<h2>Linear regression model</h2>
 <pre class="r"><code>hh_data_a3 &lt;- read.csv(&quot;TravisHH.csv&quot;) %&gt;% 
   mutate(HHT_2 = case_when(
     HHT_label==&quot;Married couple household&quot;~&quot;Married couple&quot;,
@@ -1579,6 +1591,15 @@ summary(model1)</code></pre>
 ## Residual standard error: 464.8 on 3784 degrees of freedom
 ## Multiple R-squared:  0.2412, Adjusted R-squared:  0.2386 
 ## F-statistic:  92.5 on 13 and 3784 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div id="results" class="section level2">
+<h2>Results</h2>
+<p>The results of this model present a variety of interesting information. First, the R-squared value of ~ 0.24 is fairly high, and indicates a decent model fit.</p>
+<p>Next, most of the relationships are statistically significant - with just a few exceptions. For the categorical variable (<strong>BLDG_AGE_dec</strong>), the base category was the <em>1940s</em>. On average, structures in this base case saw higher rents than every other category, although the relationship with the <em>1950s</em> and <em>2010s</em> categories were not statistically significant. The coefficients ranged from a minimum of -94.51893041 for the 2010s to a maximum of -358.38196226 for the 1980s. This means that structures built in the 1980s on average paid rents $358 less than those built in the 1940s, and so on.</p>
+<p>In the case of household income, (<strong>HINCP</strong>), we see a result indicating a positive correlation with a coefficient of 0.00183933. This result shows that for every additional dollar of household income, rents rise by roughly 1/5th of a cent; in other words, for every $1,000 increase in household incomes, rents rise by approximately $1.84.</p>
+<p>The coefficient estimate for bedrooms per household (<strong>BDSP</strong>) is 124.05191233, which means that every additional bedroom corresponds to an increase in monthly rent of about $124.</p>
+<p>Finally, with household type (<strong>HHT_label</strong>), the base category was married couple households. Compared to this case, the coefficient estimate for non-family roommate households is 63.51164579, or about $64 more per month. For single-occupant households the relationship was <em>not</em> statistically significant. For single-parent families, this coefficient was -98.10395069, or roughly $98 less per month.</p>
+</div>
 
 
 

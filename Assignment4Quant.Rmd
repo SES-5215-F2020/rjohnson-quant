@@ -10,14 +10,27 @@ output:
     theme: cosmo
 ---
 
+## Description
+
+In this exercise, I will estimate a linear regression model to predict the values of one of my continuous variables, monthly rent (__RNTP__), based on the values of the other variables. 
+
+These independent variables are: 
+
+1. Annual household income (__HINCP__)
+2. Number of bedrooms (__BDSP__)
+3. Decade of construction (__BLDG_AGE_dec__)
+4. Household type (__HHT_label__)
+
 ```{r data import libraries, message = FALSE, include=FALSE}
 library(ggplot2)
 library(tidyverse)
 ```
 
-```{r sci notation, message=FALSE}
+```{r sci notation, message=FALSE, include=FALSE}
 options(scipen = 9)
 ```
+
+## Linear regression model
 
 ``` {r load data, message=FALSE}
 hh_data_a3 <- read.csv("TravisHH.csv") %>% 
@@ -39,4 +52,19 @@ model1 <- lm(RNTP ~ HINCP + BDSP + BLDG_AGE_dec + HHT_2,
 
 summary(model1)
 ```
+
+## Results
+
+The results of this model present a variety of interesting information. First, the R-squared value of ~ 0.24 is fairly high, and indicates a decent model fit. 
+
+Next, most of the relationships are statistically significant - with just a few exceptions. For the categorical variable (__BLDG_AGE_dec__), the base category was the _1940s_. On average, structures in this base case saw higher rents than every other category, although the relationship with the _1950s_ and _2010s_ categories were not statistically significant. The coefficients ranged from a minimum of -94.51893041 for the 2010s to a maximum of -358.38196226 for the 1980s. This means that structures built in the 1980s on average paid rents $358 less than those built in the 1940s, and so on. 
+
+In the case of household income, (__HINCP__), we see a result indicating a positive correlation with a coefficient of 0.00183933. This result shows that for every additional dollar of household income, rents rise by roughly 1/5th of a cent; in other words, for every $1,000 increase in household incomes, rents rise by approximately $1.84. 
+
+The coefficient estimate for bedrooms per household (__BDSP__) is 124.05191233, which means that every additional bedroom corresponds to an increase in monthly rent of about $124. 
+
+Finally, with household type (__HHT_label__), the base category was married couple households. Compared to this case, the coefficient estimate for non-family roommate households is 63.51164579, or about $64 more per month. For single-occupant households the relationship was _not_ statistically significant. For single-parent families, this coefficient was -98.10395069, or roughly $98 less per month. 
+
+
+
 
