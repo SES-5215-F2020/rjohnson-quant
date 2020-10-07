@@ -1,0 +1,228 @@
+---
+title: "Assignment 5"
+author: "Ryan Johnson"
+date: "10/6/2020"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    theme: "paper"
+    code_folding: hide
+---
+
+```{r load libraries, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(jtools)
+library(interactions)
+library(ggplot2)
+library(huxtable)
+```
+
+
+## Description
+
+In this exercise, I will estimate more regression models to predict the values of one of my continuous variables, monthly rent (__RNTP__), based on the values of the other variables. 
+
+These independent variables are: 
+
+1. Annual household income (__HINCP__)
+2. Number of bedrooms (__BDSP__)
+3. Decade of construction (__BLDG_AGE_dec__)
+4. Household type (__HHT_2__)
+5. Household size (__NP__)
+
+
+```{r sci notation, message=FALSE, include=FALSE}
+options(scipen = 9)
+```
+
+## Original linear regression model
+
+In my first linear regression model, I only analyzed the first 4 of my 5 independent variables. I excluded household size because it appeared to have an outsize impact on my model fit value, as it is a 1:1 correlation with the single-occupant household value of household type (__HHT_2__). 
+
+``` {r load data, message=FALSE}
+hh_data_a3 <- read.csv("TravisHH.csv") %>% 
+  mutate(HHT_2 = case_when(
+    HHT_label=="Married couple household"~"Married couple",
+    HHT_label=="Other family household: Female householder, no spouse present"~"Single parent family",
+    HHT_label=="Other family household: Male householder, no spouse present"~"Single parent family",
+    HHT_label=="Nonfamily household: Male householder: Not living alone"~"Non-family multiple",
+    HHT_label=="Nonfamily household: Female householder: Not living alone"~"Non-family multiple",
+    HHT_label=="Nonfamily household: Female householder: Living alone"~"Single occupant",
+    HHT_label=="Nonfamily household: Male householder: Living alone"~"Single occupant"))
+
+model1 <- lm(RNTP ~ HINCP + BDSP + BLDG_AGE_dec + HHT_2, 
+             data = hh_data_a3)
+
+summary(model1)
+
+```
+
+Below, we can see the impact of the added household size (__NP__) variable. I will call this model #2.
+
+```{r linear regression 2, message=FALSE}
+model2 <- lm(RNTP ~ HINCP + BDSP + BLDG_AGE_dec + NP + HHT_2, 
+             data = hh_data_a3)
+
+summary(model2)
+```
+
+The most notable difference occurs in the apparent model fit, as including the NP variable boosts the adjusted R-squared value from 0.239 to 0.343. Additionally, including NP reduces the significance of the relationship between a date of construction in the 2000s (__BLDG_AGE_dec$2000s__) and monthly rent (__RNTP__). As such, I will continue to exclude this variable from my other models. 
+
+## Log-transformed variable
+
+First, I would like to run a model including a log-transformed version of my household income variable (__HINCP__). This is model #3.
+
+```{r linear regression log HINCP, message=FALSE}
+model3 <- lm(RNTP ~ log(HINCP) + BDSP + BLDG_AGE_dec + HHT_2, 
+             data = hh_data_a3)
+
+summary(model3)
+```
+
+Two things occur when the log of household income (__HINCP__) is used in this model. First, the coefficient changes dramatically to show that as a person's income _doubles_, one might expect their rent to increase by about $164. Second, the adjusted R-squared value improves slightly, from 0.239 to 0.256, suggesting a better model fit. 
+
+## Converting a continuous variable to a categorical
+
+Instead of log-transforming household income (__HINCP__), I would like to convert it to a categorical variable. It may be that income groupings behave differently with regard to rent; especially considering that my rent data appears capped at $3000/month, and so very-high-incomes cannot pay proportionally more rent, this may more accurately reflect behaviors of the subject population. We can examine this in model #4.
+
+```{r categorical income linear model, message=FALSE}
+hh_data_a3 <- hh_data_a3 %>%
+  mutate(income_lvl = case_when(HINCP <= 25000 ~ "1Low income",
+                                (HINCP > 25000) & (HINCP < 100000) ~ "Moderate income",
+                                HINCP >= 100000 ~ "High income"))
+
+model4 <- lm(RNTP ~ income_lvl + BDSP + BLDG_AGE_dec + HHT_2, 
+            data = hh_data_a3)
+
+summary(model4)
+```
+
+As indicated by the adjusted R-squared value of 0.259, vs 0.256 for the log-adjusted income model, this model including three categorical income levels has a slightly better model fit. According to the model, those households with high annual incomes (above $100,000) and moderate annual incomes (between $25,000 and $100,000) pay about $490 and $182 more in monthly rent, respectively. 
+
+## Interaction term 
+
+Perhaps the effect of annual household income is different depending on the type of household - it may be that a single occupant household can afford more rent as compared to a similarly-situated household of unmarried people, whose household income must cover the personal expenses of multiple people. 
+
+In this model, I will test the interaction between these variables, using model #3 as the framework. This new model will be model #5.
+
+```{r interaction log_HINCP vs HHT, message=FALSE}
+model5 <- lm(RNTP ~ log(HINCP) + BDSP + BLDG_AGE_dec + HHT_2 + log(HINCP):HHT_2, 
+             data = hh_data_a3)
+
+summary(model5)
+```
+
+We see from the interaction term that higher household income has a positive statistically significant effect on monthly rents, but that the effect of increased income is less for single-occupant and non-family households compared to married couple households. The coefficient estimate for the interaction between increased income and single-parent family households (as compared to the effect of increased income on married couple households) is not statistically significant. 
+
+## Conclusion and visualization 
+
+In conclusion, model #5 (which included the log of annual household income and an interaction term between income and household type) offered the best model fit, with an adjusted R-squared value of 0.2717. 
+
+While model #2 has the highest R-squared value, this is deceptively inflated by the household size variable (__NP__), which in the case of single-occupant households is naturally perfectly correlated to the household type (__HHT_2__) variable.
+
+```{r adj r-square all, message=FALSE, fig.height=6, fig.width=8}
+ModelFit <- tibble(model = c(1, 2, 3, 4, 5),
+                   R_square = c(summary(model1)$adj.r.squared,
+                                summary(model2)$adj.r.squared,
+                                summary(model3)$adj.r.squared,
+                                summary(model4)$adj.r.squared,
+                                summary(model5)$adj.r.squared))
+
+ggplot(ModelFit, aes(x = model, y = R_square)) +
+  geom_line() +
+  geom_point(data = ModelFit, aes(x = model, y = R_square),
+             size = 2,
+             color = "orange3") +
+  scale_x_continuous(name = "",
+                     breaks = breaks <- seq(1, 5, by = 1),
+                     labels = paste("Model", breaks)) +
+  scale_y_continuous(name = "Adjusted R-squared value\n") +
+  theme_minimal()
+```
+
+The results of models 1, 3, and 5 can be seen together in the table below. The coefficient for (__HINCP__) in model 1 appears to be zero due to rounding, but is in fact 0.0018.
+
+```{r table results, message=FALSE}
+coeff_names <- c("Annual household income" = "HINCP",
+                 "Annual household income\n(log-transformed)" = 
+                   "log(HINCP)",
+                 "Built pre-1940s\n(compared to 1940s)" = 
+                   "BLDG_AGE_decpre-1940s",
+                 "Built 1950s\n(compared to 1940s)" = 
+                   "BLDG_AGE_dec1950s",
+                 "Built 1960s\n(compared to 1940s)" = 
+                   "BLDG_AGE_dec1960s",
+                 "Built 1970s\n(compared to 1940s)" = 
+                   "BLDG_AGE_dec1970s",
+                 "Built 1980s\n(compared to 1940s)" = 
+                   "BLDG_AGE_dec1980s",
+                 "Built 1990s\n(compared to 1940s)" = 
+                   "BLDG_AGE_dec1990s",
+                 "Built 2000s\n(compared to 1940s)" = 
+                   "BLDG_AGE_dec2000s",
+                 "Built 2010s\n(compared to 1940s)" = 
+                   "BLDG_AGE_dec2010s",
+                 "Single-parent family\nhousehold (compared to married)" = 
+                   "HHT_2Single parent family",
+                 "Non-family multiple-member\nhousehold (compared to married)" = 
+                   "HHT_2Non-family multiple",
+                 "Single occupant\nhousehold (compared to married)" = 
+                   "HHT_2Single occupant",
+                 "Interaction:\nincome and single-parent family" = 
+                   "log(HINCP):HHT_2Single parent family",
+                 "Interaction:\nincome and non-family multiple" = 
+                   "log(HINCP):HHT_2Non-family multiple",
+                 "Interaction:\nincome and single occupant" = 
+                   "log(HINCP):HHT_2Single occupant")
+
+export_summs(model1, model3, model5,
+             error_format = "(p = {p.value})",
+             error_pos = "same",
+             model.names = c("Initial model", "Model 3", "Preferred model"),
+             coefs = coeff_names)
+```
+
+Finally, I'd like to visualize the predicted relationship between monthly rent and income, accounting for household type (the interaction term added to Model #5). I exclude the confidence intervals for the sake of visual clarity. 
+
+```{r interact_plot income hht, message=FALSE, fig.height=6, fig.width=8, warning=FALSE}
+interact_plot(model5, pred = HINCP, modx = HHT_2, interval = FALSE) +
+  scale_x_continuous(name = "Annual household income (thousands)",
+                     limits = c(0, 1000000),
+                     breaks = breaks <- seq(0, 1000000, by = 100000),
+                     labels = paste("$", 
+                                    prettyNum(breaks/1000, 
+                                              big.mark = ","),
+                                    sep = "")) +
+  scale_y_continuous(name = "Monthly rent",
+                     limits = c(0, 2400),
+                     breaks = breaks <- seq(0, 2400, by = 200),
+                     labels = paste("$",
+                                    prettyNum(breaks, 
+                                              big.mark = ","),
+                                    sep = "")) +
+  
+  scale_color_discrete(name = "Household type") +
+  scale_linetype_discrete(name = "Household type") +
+  scale_fill_discrete(name = "")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
